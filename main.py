@@ -47,4 +47,4 @@ TESTE
 while 1 :
     anda_frente()
     anda_frente()
-    vira_esquerda()
+    vira_esquerda()   
