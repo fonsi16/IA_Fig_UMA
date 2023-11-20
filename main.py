@@ -8,13 +8,43 @@ from pybricks.robotics import DriveBase
 from pybricks.media.ev3dev import SoundFile, ImageFile
 
 
-# This program requires LEGO EV3 MicroPython v2.0 or higher.
-# Click "Open user guide" on the EV3 extension tab for more information.
+"""
+VARIAVEIS
+"""
+DIAMETRO_RODA=56
+EIXO_CENTRAL=114
+DISTANCIA_ENTRE_QUADRADOS=550
+ANGULO_RODAR=200
 
-
-# Create your objects here.
+"""
+OBJETOS
+"""
 ev3 = EV3Brick()
+perna_direita = Motor(Port.B)
+perna_esquerda = Motor(Port.C)
+pernas = DriveBase(perna_esquerda, perna_direita, DIAMETRO_RODA, EIXO_CENTRAL)
 
 
-# Write your program here.
+"""
+DEFINIÇÃO DE FUNÇÕES
+"""
 ev3.speaker.beep()
+def anda_frente():
+    pernas.straight(DISTANCIA_ENTRE_QUADRADOS)
+    return 0
+
+def vira_direita():
+    pernas.turn(-ANGULO_RODAR)
+    return 0
+
+def vira_esquerda():
+    pernas.turn(ANGULO_RODAR)
+    return 0
+
+"""
+TESTE
+"""
+while 1 :
+    anda_frente()
+    anda_frente()
+    vira_esquerda()   
