@@ -17,13 +17,19 @@ DISTANCIA_ENTRE_QUADRADOS=550
 ANGULO_RODAR=200
 
 """
+ARRAY
+"""
+cores_lidas = []
+
+"""
 OBJETOS
 """
 ev3 = EV3Brick()
+garra = Motor(Port.A)
 perna_direita = Motor(Port.B)
 perna_esquerda = Motor(Port.C)
 pernas = DriveBase(perna_esquerda, perna_direita, DIAMETRO_RODA, EIXO_CENTRAL)
-
+sensor_cor = ColorSensor(Port.S2)
 
 """
 DEFINIÇÃO DE FUNÇÕES
@@ -31,6 +37,10 @@ DEFINIÇÃO DE FUNÇÕES
 ev3.speaker.beep()
 def anda_frente():
     pernas.straight(DISTANCIA_ENTRE_QUADRADOS)
+    return 0
+
+def anda_tras():
+    pernas.straight(-DISTANCIA_ENTRE_QUADRADOS)
     return 0
 
 def vira_direita():
@@ -41,10 +51,124 @@ def vira_esquerda():
     pernas.turn(ANGULO_RODAR)
     return 0
 
+def deteta_cor():
+    # Lê o valor da cor
+    cor_detectada = sensor_cor.color()
+
+    # Mapa de valores de cor para nomes de cor
+    mapa_cores = {
+        Color.BLACK: 'Preto',
+        Color.BLUE: 'Azul',
+        Color.GREEN: 'Verde',
+        Color.YELLOW: 'Amarelo',
+        Color.RED: 'Vermelho',
+        Color.WHITE: 'Branco',
+        Color.BROWN: 'Marrom'
+    }
+
+    # Determina a cor detectada
+    cor_detectada_nome = mapa_cores.get(cor_detectada, 'Desconhecida')
+    return cor_detectada_nome
+
+def agarra_objeto():
+    wait(1000)
+    garra.run_time(450, 2000)
+    ev3.speaker.say("Light weight")
+    garra.stop() 
+    return 0
+
+def larga_objeto():
+    wait(1000)
+    garra.run_time(-450, 2000)
+    ev3.speaker.say("Yeah Buddy")
+    garra.stop() 
+    return 0
+
+
+def obtem_cor_por_indice(indice):
+    if indice < len(cores_lidas):
+        return cores_lidas[indice]
+    else:
+        return None 
+
 """
 TESTE
 """
-while 1 :
-    anda_frente()
-    anda_frente()
-    vira_esquerda()   
+"""
+while 1:
+    cor_detectada = deteta_cor()
+    print('Cor detectada:' + cor_detectada)
+    wait(1000)
+"""
+
+"""
+anda_frente()
+agarra_objeto()
+vira_esquerda()
+anda_frente()
+larga_objeto()
+anda_tras()
+vira_direita()
+vira_direita()
+"""
+
+while 1:
+    cor_detectada = deteta_cor()
+    print('Cor detectada: ' + cor_detectada)
+
+    if cor_detectada == 'Verde':
+
+        cores_lidas.append(cor_detectada)
+
+        ev3.speaker.say("Green")
+
+        anda_frente()
+        vira_esquerda()
+        vira_esquerda()
+        anda_tras()
+    elif cor_detectada == 'Vermelho':
+
+        cores_lidas.append(cor_detectada)
+
+        ev3.speaker.say("Red")
+
+        anda_frente()
+        vira_direita()
+        vira_direita()
+        anda_tras()
+    elif cor_detectada == 'Amarelo':
+
+        cores_lidas.append(cor_detectada)
+
+        ev3.speaker.say("Yellow")
+
+        anda_frente()
+        anda_tras()
+        agarra_objeto()
+        larga_objeto()
+    elif cor_detectada == 'Azul':
+
+        cores_lidas.append(cor_detectada)
+
+        ev3.speaker.say("Blue")
+
+        anda_frente()
+        vira_direita()
+        anda_tras()
+
+    wait(1000)
+
+    i = 0
+    while i < len(cores_lidas):
+        cor = obtem_cor_por_indice(i)
+        print(cor)
+        i += 1
+
+
+"""
+
+Adicionar as cores a um array.
+Podiamos por um botão para ele saber quando acabar de ler peças
+Depois começa a por no tabuleiro pela ordem que leu 
+
+"""
