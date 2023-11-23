@@ -6,6 +6,7 @@ from pybricks.tools import wait, StopWatch, DataLog
 from pybricks.robotics import DriveBase
 from pybricks.media.ev3dev import SoundFile, ImageFile
 
+import matriz
 
 """
 VARIAVEIS
@@ -117,7 +118,7 @@ def deteta_pecas():
         i += 1
 
     print("Li todas as peças!")
-
+    
 #Função para saber se fez figura ou não (tem de ganhar os pontos) (temos de usar matriz)
 #Função para ele ir buscar peça
 #Função para ele ir meter peça a um lugar no tabuleiro
@@ -201,5 +202,7 @@ while 1:
         i += 1
 """
 
+matriz_jogo=matriz.cria_matriz(5,5)
+matriz.imprime_matriz(matriz_jogo)
 #deteta_pecas()
 #jogo()
