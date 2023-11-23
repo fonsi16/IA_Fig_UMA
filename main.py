@@ -1,7 +1,6 @@
 #!/usr/bin/env pybricks-micropython
 from pybricks.hubs import EV3Brick
-from pybricks.ev3devices import (Motor, TouchSensor, ColorSensor,
-                                 InfraredSensor, UltrasonicSensor, GyroSensor)
+from pybricks.ev3devices import (Motor, TouchSensor, ColorSensor, InfraredSensor, UltrasonicSensor, GyroSensor)
 from pybricks.parameters import Port, Stop, Direction, Button, Color
 from pybricks.tools import wait, StopWatch, DataLog
 from pybricks.robotics import DriveBase
@@ -91,27 +90,42 @@ def obtem_cor_por_indice(indice):
     else:
         return None 
 
+def deteta_pecas():
+    while 1:
+        cor_detectada = deteta_cor()
+        print('Cor detectada: ' + cor_detectada)
+
+        if cor_detectada == 'Verde':
+            cores_lidas.append(cor_detectada)
+            ev3.speaker.say("Green")
+        elif cor_detectada == 'Vermelho':
+            cores_lidas.append(cor_detectada)
+            ev3.speaker.say("Red")
+        elif cor_detectada == 'Amarelo':
+            cores_lidas.append(cor_detectada)
+            ev3.speaker.say("Yellow")
+        elif cor_detectada == 'Azul':
+            cores_lidas.append(cor_detectada)
+            ev3.speaker.say("Blue")
+
+        wait(1000)
+
+    i = 0
+    while i < len(cores_lidas):
+        cor = obtem_cor_por_indice(i)
+        print(cor)
+        i += 1
+
+    print("Li todas as peças!")
+
+#Função para saber se fez figura ou não (tem de ganhar os pontos) (temos de usar matriz)
+#Função para ele ir buscar peça
+#Função para ele ir meter peça a um lugar no tabuleiro
+
 """
 TESTE
 """
 """
-while 1:
-    cor_detectada = deteta_cor()
-    print('Cor detectada:' + cor_detectada)
-    wait(1000)
-"""
-
-"""
-anda_frente()
-agarra_objeto()
-vira_esquerda()
-anda_frente()
-larga_objeto()
-anda_tras()
-vira_direita()
-vira_direita()
-"""
-
 while 1:
     cor_detectada = deteta_cor()
     print('Cor detectada: ' + cor_detectada)
@@ -135,7 +149,29 @@ while 1:
         anda_frente()
         vira_direita()
         vira_direita()
+        anda_tras()    cor_detectada = deteta_cor()
+        print('Cor detectada: ' + cor_detectada)
+
+    elif cor_detectada == 'Amarelo':
+
+        cores_lidas.append(cor_detectada)
+
+        ev3.speaker.say("Yellow")
+
+        anda_frente()
         anda_tras()
+        agarra_objeto()
+        larga_objeto()
+    elif cor_detectada == 'Azul':
+
+        cores_lidas.append(cor_detectada)
+
+        ev3.speaker.say("Blue")
+
+        anda_frente()
+        vira_direita()
+        anda_tras()
+
     elif cor_detectada == 'Amarelo':
 
         cores_lidas.append(cor_detectada)
@@ -163,12 +199,7 @@ while 1:
         cor = obtem_cor_por_indice(i)
         print(cor)
         i += 1
-
-
 """
 
-Adicionar as cores a um array.
-Podiamos por um botão para ele saber quando acabar de ler peças
-Depois começa a por no tabuleiro pela ordem que leu 
-
-"""
+#deteta_pecas()
+#jogo()
