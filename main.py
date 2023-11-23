@@ -88,7 +88,6 @@ def larga_objeto():
     garra.stop() 
     return 0
 
-
 def obtem_cor_por_indice(indice):
     if indice < len(cores_lidas):
         return cores_lidas[indice]
@@ -103,14 +102,17 @@ def deteta_pecas():
         cores_lidas.append(cor_detectada)
         pecas.append("+")
         ev3.speaker.say("Green")
+        
     elif cor_detectada == 'Vermelho':
         cores_lidas.append(cor_detectada)
         pecas.append("X")
         ev3.speaker.say("Red")
+        
     elif cor_detectada == 'Amarelo':
         cores_lidas.append(cor_detectada)
         pecas.append("O")
         ev3.speaker.say("Yellow")
+        
     elif cor_detectada == 'Azul':
         cores_lidas.append(cor_detectada)
         pecas.append("-")
@@ -126,102 +128,21 @@ def leu_todas_pecas():
     print("Li todas as peças!")
     print(pecas)
 
-def detecao_inicial():
-    if(inicio):
-        deteta_pecas()
-        wait(2000)
-    if botao_deteta_cor.pressed():
-        inicio = False
-        leu_todas_pecas()
-        wait(2000)
+
+
+
+
 #Função para saber se fez figura ou não (tem de ganhar os pontos) (temos de usar matriz)
 #Função para ele ir buscar peça
 #Função para ele ir meter peça a um lugar no tabuleiro
 
 """
-TESTE
-"""
-"""
-while 1:
-    cor_detectada = deteta_cor()
-    print('Cor detectada: ' + cor_detectada)
-
-    if cor_detectada == 'Verde':
-
-        cores_lidas.append(cor_detectada)
-
-        ev3.speaker.say("Green")
-
-        anda_frente()
-        vira_esquerda()
-        vira_esquerda()
-        anda_tras()
-    elif cor_detectada == 'Vermelho':
-
-        cores_lidas.append(cor_detectada)
-
-        ev3.speaker.say("Red")
-
-        anda_frente()
-        vira_direita()
-        vira_direita()
-        anda_tras()    cor_detectada = deteta_cor()
-        print('Cor detectada: ' + cor_detectada)
-
-    elif cor_detectada == 'Amarelo':
-
-        cores_lidas.append(cor_detectada)
-
-        ev3.speaker.say("Yellow")
-
-        anda_frente()
-        anda_tras()
-        agarra_objeto()
-        larga_objeto()
-    elif cor_detectada == 'Azul':
-
-        cores_lidas.append(cor_detectada)
-
-        ev3.speaker.say("Blue")
-
-        anda_frente()
-        vira_direita()
-        anda_tras()
-
-    elif cor_detectada == 'Amarelo':
-
-        cores_lidas.append(cor_detectada)
-
-        ev3.speaker.say("Yellow")
-
-        anda_frente()
-        anda_tras()
-        agarra_objeto()
-        larga_objeto()
-    elif cor_detectada == 'Azul':
-
-        cores_lidas.append(cor_detectada)
-
-        ev3.speaker.say("Blue")
-
-        anda_frente()
-        vira_direita()
-        anda_tras()
-
-    wait(1000)
-
-    i = 0
-    while i < len(cores_lidas):
-        cor = obtem_cor_por_indice(i)
-        print(cor)
-        i += 1
-"""
-
-"""
     INICIO DO PROGRAMA
 """
 ev3.speaker.beep()
-matriz_jogo=matriz.cria_matriz(5,5)
+
+#Cria uma matriz 5 por 5
+matriz_jogo = matriz.cria_matriz(5,5)
 print("Matriz inicial criada")
 matriz.imprime_matriz(matriz_jogo)
 
