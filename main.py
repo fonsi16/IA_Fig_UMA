@@ -13,15 +13,21 @@ VARIAVEIS
 """
 DIAMETRO_RODA = 56
 EIXO_CENTRAL = 114
-DISTANCIA_ENTRE_QUADRADOS = 550
-ANGULO_RODAR = 200
+DISTANCIA_ENTRE_QUADRADOS = 450
+ANGULO_RODAR = 190
 
+TAMANHO_MATRIZ = 3
+TAMANHO_AMBIENTE = TAMANHO_MATRIZ + 1 
 
 final = False  #Enquanto o programa não acaba
 inicio = True  #Inicio da detecao das cores
+
+robo_x = TAMANHO_AMBIENTE
+robo_y = TAMANHO_AMBIENTE
 """
 ARRAY
 """
+matriz_jogo =[]
 cores_lidas = []
 pecas = []
 
@@ -36,6 +42,7 @@ pernas = DriveBase(perna_esquerda, perna_direita, DIAMETRO_RODA, EIXO_CENTRAL)
 sensor_cor = ColorSensor(Port.S2)
 botao_deteta_cor = TouchSensor(Port.S3)
 
+pernas.settings(190, 100, 190, 100)
 """
 DEFINIÇÃO DE FUNÇÕES
 """
@@ -49,10 +56,17 @@ def anda_tras():
 
 def vira_direita():
     pernas.turn(-ANGULO_RODAR)
+    wait(1000)
     return 0
 
 def vira_esquerda():
     pernas.turn(ANGULO_RODAR)
+    wait(1000)
+    return 0
+
+def gira():
+    pernas.turn(2*ANGULO_RODAR)
+    wait(1000)
     return 0
 
 def deteta_cor():
@@ -128,9 +142,40 @@ def leu_todas_pecas():
     print("Li todas as peças!")
     print(pecas)
 
+def posicionar(linha, coluna):
+    global robo_x, robo_y
+    if (linha != 3):
+        gira()
+        for i in range(TAMANHO_AMBIENTE - linha):
+            anda_frente()
+            robo_x -= robo_x
+    vira_esquerda()
+    for j in range(TAMANHO_AMBIENTE - coluna):
+        anda_frente()
+        robo_y -= robo_y
+            
+        
 
+def leitura_objetos():
+    while (inicio):
+        deteta_pecas()
+        wait(2000)
+        if botao_deteta_cor.pressed():
+            inicio = False
+            leu_todas_pecas()
 
-
+def jogar():
+    pecas_inseridas = 0
+    inserida = False
+    while (pecas_inseridas<=len(pecas) and pecas_inseridas<TAMANHO_MATRIZ**2):
+        for i in matriz_jogo:
+            if not (i==0 or i==TAMANHO_AMBIENTE):
+                for j in matriz_jogo[i]:
+                    if not (j==0 or j==TAMANHO_AMBIENTE):
+                        if matriz.verifica_vazio(matriz_jogo,i,j):
+                            agarra_objeto()
+                            posicionar(i,j)
+                    
 
 #Função para saber se fez figura ou não (tem de ganhar os pontos) (temos de usar matriz)
 #Função para ele ir buscar peça
@@ -141,32 +186,24 @@ def leu_todas_pecas():
 """
 ev3.speaker.beep()
 
-#Cria uma matriz 5 por 5
-matriz_jogo = matriz.cria_matriz(5,5)
+#Cria uma matriz de Ambiente
+matriz_jogo = matriz.cria_matriz(TAMANHO_MATRIZ+2)
 print("Matriz inicial criada")
 matriz.imprime_matriz(matriz_jogo)
 
-while not final:
-    """
-        No início o robo verifica as cores que representam os símbolos 
-            -AMARELO: O
-            -VERMELHO: X
-            -VERDE: +
-            -AZUL: -
-    """
+"""
+    No início o robo verifica as cores que representam os símbolos 
+        -AMARELO: O
+        -VERMELHO: X
+        -VERDE: +
+        -AZUL: -
+"""
 
-    while (inicio):
-        deteta_pecas()
-        wait(2000)
-        if botao_deteta_cor.pressed():
-            inicio = False
-            leu_todas_pecas()
-    
-    if (matriz.verifica_acabou(matriz_jogo) == True): #se pode continuar a jogar vai continuar neste ciclo
-        matriz.verifica_tem_objeto(matriz_jogo)
-        matriz.imprime_matriz(matriz_jogo)
-    else:
-        final = True
+"""
+ev3.speaker.beep()
+leitura_objetos()
 
-    
+jogar()
+"""
+           
 #jogo()
