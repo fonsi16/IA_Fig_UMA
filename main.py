@@ -154,6 +154,7 @@ while not final:
             -VERDE: +
             -AZUL: -
     """
+
     while (inicio):
         deteta_pecas()
         wait(2000)
@@ -161,5 +162,11 @@ while not final:
             inicio = False
             leu_todas_pecas()
     
-    final = True
+    if (matriz.verifica_acabou(matriz_jogo) == True): #se pode continuar a jogar vai continuar neste ciclo
+        matriz.verifica_tem_objeto(matriz_jogo)
+        matriz.imprime_matriz(matriz_jogo)
+    else:
+        final = True
+
+    
 #jogo()
