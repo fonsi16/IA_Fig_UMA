@@ -17,6 +17,7 @@ def cria_matriz(tamanho):
     return matriz
 
 def imprime_matriz(matriz):
+    print("-="*5+"MATRIZ JOGO"+"-="*5)
     for i in range(len(matriz)):
         linha = "|"
         for j in range(len(matriz[i])):
@@ -25,7 +26,7 @@ def imprime_matriz(matriz):
     return 0
     
 def inserir_objeto_matriz(objeto,linha,coluna,matriz):
-    matriz[linha-1][coluna-1] =objeto
+    matriz[linha][coluna] =objeto
 
 
 #tem de receber o objeto também para então mandar para o 'inserir_objeto_metriz' pq não vai ser sempre 'x'
@@ -46,13 +47,3 @@ def verifica_vazio(matriz, linha, coluna):
     else:
         return False
     
-
-#vai verificar se ainda tem espaços em branco, se não houver nenhum significa que a matriz está toda preenchida
-#e vai mandar o signal para acabar
-def verifica_acabou(matriz):
-    for i in range(len(matriz)):
-        for j in range(len(matriz[i])):
-            if matriz[i][j] != "-":
-                j += 1
-            else:
-                return True #significa que ainda pode continuar a jogar

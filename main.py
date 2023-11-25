@@ -141,21 +141,7 @@ def leu_todas_pecas():
 
     print("Li todas as peças!")
     print(pecas)
-
-def posicionar(linha, coluna):
-    global robo_x, robo_y
-    if (linha != 3):
-        gira()
-        for i in range(TAMANHO_AMBIENTE - linha):
-            anda_frente()
-            robo_x -= robo_x
-    vira_esquerda()
-    for j in range(TAMANHO_AMBIENTE - coluna):
-        anda_frente()
-        robo_y -= robo_y
             
-        
-
 def leitura_objetos():
     while (inicio):
         deteta_pecas()
@@ -164,18 +150,45 @@ def leitura_objetos():
             inicio = False
             leu_todas_pecas()
 
-def jogar():
-    pecas_inseridas = 0
-    inserida = False
-    while (pecas_inseridas<=len(pecas) and pecas_inseridas<TAMANHO_MATRIZ**2):
-        for i in matriz_jogo:
-            if not (i==0 or i==TAMANHO_AMBIENTE):
-                for j in matriz_jogo[i]:
-                    if not (j==0 or j==TAMANHO_AMBIENTE):
-                        if matriz.verifica_vazio(matriz_jogo,i,j):
-                            agarra_objeto()
-                            posicionar(i,j)
+def posicionar(linha, coluna):
+    global robo_x, robo_y
+    if linha==1:
+        for i in range(TAMANHO_AMBIENTE):
+            mo
+        for i in range(TAMANHO_AMBIENTE-coluna):
+            move_esquerda()
+
+
+def volta_base():
+    global robo_x, robo_y
+    if (robo_y == TAMANHO_AMBIENTE and robo_x ==TAMANHO_AMBIENTE):
+        return 1
+            
+def get_coordenada_vazia():
+    global matriz_jogo
+    for i in range(len(matriz_jogo)):
+        if not (i==0 or i==TAMANHO_AMBIENTE):
+            for j in range(len(matriz_jogo[i])):
+                if not (j==0 or j==TAMANHO_AMBIENTE):
+                    if matriz.verifica_vazio(matriz_jogo,i,j):
+                        return [i,j]
                     
+def coloca_peca(peca):
+    global matriz_jogo
+    coordenada = get_coordenada_vazia()
+    if coordenada is not None:
+        x = coordenada[0]
+        y = coordenada[1]
+        posicionar(x,y)
+        matriz.inserir_objeto_matriz(peca,y,x,matriz_jogo)
+        matriz.imprime_matriz(matriz_jogo)
+        volta_base()
+
+def jogar():
+    global matriz_jogo
+    for i in range(len(pecas)):
+        coloca_peca(pecas[i])
+    
 
 #Função para saber se fez figura ou não (tem de ganhar os pontos) (temos de usar matriz)
 #Função para ele ir buscar peça
@@ -188,7 +201,6 @@ ev3.speaker.beep()
 
 #Cria uma matriz de Ambiente
 matriz_jogo = matriz.cria_matriz(TAMANHO_MATRIZ+2)
-print("Matriz inicial criada")
 matriz.imprime_matriz(matriz_jogo)
 
 """
