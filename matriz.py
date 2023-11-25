@@ -8,15 +8,16 @@
     [z|z|z|z|z]
     """
     
-def cria_matriz(colunas, linhas):
+def cria_matriz(tamanho):
     matriz = []
-    for i in range(linhas):
+    for i in range(tamanho):
         matriz.append([])
-        for z in range(colunas):
-            matriz[i].append("-")
+        for z in range(tamanho):
+            matriz[i].append(" ")
     return matriz
 
 def imprime_matriz(matriz):
+    print("-="*3+"MATRIZ JOGO"+"-="*2)
     for i in range(len(matriz)):
         linha = "|"
         for j in range(len(matriz[i])):
@@ -25,8 +26,11 @@ def imprime_matriz(matriz):
     return 0
     
 def inserir_objeto_matriz(objeto,linha,coluna,matriz):
-    for i in range(len(matriz)):
-        if (i == linha-1):
-            for j in range(len(matriz[i])):
-                if (j == coluna-1):
-                    matriz[i][j]=objeto
+    matriz[linha][coluna] =objeto
+        
+def verifica_vazio(matriz, linha, coluna):
+    if matriz[linha][coluna] == " ":
+        return True
+    else:
+        return False
+    
