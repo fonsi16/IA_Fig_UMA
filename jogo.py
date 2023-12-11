@@ -270,10 +270,11 @@ def posicionar(linha, coluna):
     #Retorna a rota
     return caminho
    
-#Verifica todas as peças à volta 
+#Verifica se todos os espaços à volta de um sítio do tabuleiro são vazios
 def verifica_perimetro(linha, coluna):
     global matriz_jogo
     coordenadas=[]
+    #Verifica os 4 espaços á volta
     if matriz.verifica_vazio(matriz_jogo,linha+1,coluna):
         coordenadas.append([linha+1,coluna])
     if matriz.verifica_vazio(matriz_jogo,linha,coluna+1):
@@ -282,12 +283,16 @@ def verifica_perimetro(linha, coluna):
         coordenadas.append([linha-1,coluna])
     if matriz.verifica_vazio(matriz_jogo,linha,coluna-1):
         coordenadas.append([linha,coluna-1])
+    #Retorna um array de coordenadas dos espaços vazios á volta do sítio
     return coordenadas
     
+#Muda o sentido do robô dependendo do que recebe como argumento
 def muda_sentido(sentido):
     global sentido_robo
     
+    #Verifica o sentido para que quer mudar
     if(sentido == SUL):
+        #Verifica o sentido do robô e vira respetivamente
         if(sentido_robo == NORTE):
             gira()
         elif(sentido_robo == ESTE):
@@ -296,6 +301,7 @@ def muda_sentido(sentido):
             vira_esquerda()
     
     elif(sentido == NORTE):
+        #Verifica o sentido do robô e vira respetivamente
         if(sentido_robo == SUL):
             gira()
         elif(sentido_robo == OESTE):
@@ -304,6 +310,7 @@ def muda_sentido(sentido):
             vira_esquerda()
     
     elif(sentido == OESTE):
+        #Verifica o sentido do robô e vira respetivamente
         if(sentido_robo == ESTE):
             gira()
         elif(sentido_robo == SUL):
@@ -312,6 +319,7 @@ def muda_sentido(sentido):
             vira_esquerda()
             
     elif(sentido == ESTE):
+        #Verifica o sentido do robô e vira respetivamente
         if(sentido_robo == OESTE):
             gira()
         elif(sentido_robo == NORTE):
@@ -319,21 +327,33 @@ def muda_sentido(sentido):
         elif(sentido_robo == SUL):
             vira_esquerda()
     
+    #Muda o sentido do robô para o que acabou de mudar
     sentido_robo = sentido
     
+#Volta para base percorrendo a rota
 def voltar (caminho):
     global matriz_jogo
+    #Percorre o caminho
     for i in range(len(caminho)-1):
+        #Movimenta-se do espaço atual (caminho[i]) para o espaço seguinte (caminho[i+1])
         movimento(caminho[i][0], caminho[i][1], caminho[i+1][0], caminho[i+1][1])
+    #Muda o sentido do robô para sul depois de chegar a base
     muda_sentido(SUL)
           
+#Devolde as primeiras coordenadas vazias começando na linha de cima para baixo e na coluna da esquerda para a direita
 def get_coordenada_vazia():
     global matriz_jogo
+    #Percorre as linhas da matriz do ambiente
     for i in range(len(matriz_jogo)):
+        #Se não está na primeira ou na última linha (pois essas estão fora do tabuleiro de jogo)
         if not (i==0 or i==TAMANHO_AMBIENTE):
+            #Percorre os espaços da linha
             for j in range(len(matriz_jogo[i])):
+                #Se não está na primeira ou última coluna (pois essas estão fora do tabuleiro de jogo)
                 if not (j==0 or j==TAMANHO_AMBIENTE):
+                    #Verifica se o espaço está vazio
                     if matriz.verifica_vazio(matriz_jogo,i,j):
+                        #Retorna as coordenadas
                         return [i,j]
 
 def melhor_rota(linha, coluna, caminho, nao_ir, contador):
@@ -377,22 +397,22 @@ def melhor_rota(linha, coluna, caminho, nao_ir, contador):
 #recebendo a linha e coluna que esta agora, e a proxima linha e coluna
 def movimento(linha_atual, coluna_atual, proxima_linha, proxima_coluna):
 
-    #se o proximo movimento do robô é ir para baixo ele vai virar para sul
+    #Se o proximo movimento do robô é ir para baixo ele vai virar para sul
     if (proxima_linha>linha_atual):
         muda_sentido(SUL)
         anda_frente()
 
-     #se o proximo movimento do robô é ir para cima ele vai virar para norte
+    #Se o proximo movimento do robô é ir para cima ele vai virar para norte
     elif(proxima_linha<linha_atual):
         muda_sentido(NORTE)
         anda_frente()
 
-     #se o proximo movimento do robô é ir para direita ele vai virar para este
+    #Se o proximo movimento do robô é ir para direita ele vai virar para este
     elif(proxima_coluna>coluna_atual):
         muda_sentido(ESTE)
         anda_frente()
 
-     #se o proximo movimento do robô é ir para esquerda ele vai virar para oeste
+    #Se o proximo movimento do robô é ir para esquerda ele vai virar para oeste
     elif(proxima_coluna<coluna_atual):
         muda_sentido(OESTE)
         anda_frente()
