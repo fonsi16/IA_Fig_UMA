@@ -369,15 +369,13 @@ def melhor_rota(linha, coluna, caminho, nao_ir, contador):
         return melhor_rota(linha+1, coluna, caminho , nao_ir, contador)
     
     else:
-        if [linha, coluna] in nao_ir:
-            if (len(caminho)==0):
-                contador+=1
-                if(contador==len(verifica_perimetro(nao_ir[0][0],nao_ir[0][1]))):
-                    return [] 
-            caminho.pop()
-            return melhor_rota(caminho[-1][0], caminho[-1][1], caminho, nao_ir, contador) 
+        if (len(caminho)==0 and [linha, coluna] in nao_ir):
+            contador+=1
+            if(contador==len(verifica_perimetro(nao_ir[0][0],nao_ir[0][1]))):
+                return []
         
-        nao_ir.append([linha, coluna])
+        if [linha, coluna] not in nao_ir:
+            nao_ir.append([linha, coluna])
         coordenadas = verifica_perimetro(linha,coluna)
         
         if coordenadas != []:
@@ -391,7 +389,6 @@ def melhor_rota(linha, coluna, caminho, nao_ir, contador):
                                 caminho, nao_ir, contador)
         else:
             return []
-
 
 #Funcao que orienta o robo no sentido correto, quando se esta a mover
 #recebendo a linha e coluna que esta agora, e a proxima linha e coluna
