@@ -340,7 +340,7 @@ def voltar (caminho):
     #Muda o sentido do robô para sul depois de chegar a base
     muda_sentido(SUL)
           
-#Devolde as primeiras coordenadas vazias começando na linha de cima para baixo e na coluna da esquerda para a direita
+#Devolve as primeiras coordenadas vazias começando na linha de cima para baixo e na coluna da esquerda para a direita
 def get_coordenada_vazia():
     global matriz_jogo
     #Percorre as linhas da matriz do ambiente
@@ -357,36 +357,115 @@ def get_coordenada_vazia():
                         return [i,j]
 
 def melhor_rota(linha, coluna, caminho, nao_ir, contador):
+    """Retorna um array com as coordenadas a partir da célula mais próxima à coordenada onde o robô deseja colocar a peça.
+    Esta é uma função recursiva, ou seja, será sempre chamada até alcançar a coordenada base do robô (6 por 6) 
+    ou se não conseguir retorna um array vazio.    
+
+    Args:
+        linha (int): linha da matriz.
+        coluna (int): coluna da matriz.
+        caminho (array): array com as coordenadas que o robô irá percorrerá.
+        nao_ir (array): array com as casas em que o robô não pode ir, pois são becos sem saída ou coordenadas já percorridas..
+        contador (int): contador que, ao chegar na primeira coordenada (da peça), incrementa se o número for igual às casas vazias ao redor, indicando que o robô não consegue chegar lá.
+
+    Returns:
+        caminho (array): array com as coordenadas até a casa do robô.
+            Exemplo: Se a peça será colocada na coordenada [1,1]:
+                caminho --> [[2, 1], [3, 1], [4, 1], [5, 1], [6, 1], [6, 2], [6, 3], [6, 4], [6, 5], [6, 6]]
+    """
+
+    #caso a linha e a coluna seja igual ao tamanho ambiente(onde o robo se encontra) quer dizer que achamos uma rota para chegar à peça 
     if (linha == TAMANHO_AMBIENTE) and (coluna == TAMANHO_AMBIENTE):
         return caminho
+        """ exemplo
+            |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   | # |
+        """
     
+    #caso esteja nas bordas horizontais e numa coluna antes da última
     elif (linha == 0 and coluna < TAMANHO_AMBIENTE) or (linha == TAMANHO_AMBIENTE and coluna < TAMANHO_AMBIENTE) :
+        #irá adicionar ao caminha a coordena com linha igual à atual e proxima coluna ou seja aquela que está à direita
         caminho.append([linha, coluna+1])
+        #chama a recursiva e verifica se chegou ou não à posição do robo
         return melhor_rota(linha, coluna+1, caminho, nao_ir, contador)
-            
-    elif (linha < TAMANHO_AMBIENTE and coluna == TAMANHO_AMBIENTE) or (coluna == 0 and (linha > 0 and linha < TAMANHO_AMBIENTE)) :
-        caminho.append([linha+1, coluna])
-        return melhor_rota(linha+1, coluna, caminho , nao_ir, contador)
+        """ exemplo
+            | # | # | # | # | # | # |   |
+            |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |
+            | # | # | # | # | # | # |   |
+        """
     
+    #caso esteja nas bordas verticais e numa coluna antes da última
+    elif (linha < TAMANHO_AMBIENTE and coluna == TAMANHO_AMBIENTE) or (coluna == 0 and (linha > 0 and linha < TAMANHO_AMBIENTE)) :
+        #irá adicionar ao caminha a coordena com coluna igual à atual e proxima linha ou seja aquela que está a baixo
+        caminho.append([linha+1, coluna])
+         #chama a recursiva e verifica se chegou ou não à posição do robo
+        return melhor_rota(linha+1, coluna, caminho , nao_ir, contador)
+        """ exemplo
+            |   |   |   |   |   |   | # |
+            | # |   |   |   |   |   | # |
+            | # |   |   |   |   |   | # |
+            | # |   |   |   |   |   | # |
+            | # |   |   |   |   |   | # |
+            | # |   |   |   |   |   | # |
+            |   |   |   |   |   |   |   |
+        """
+    
+    #caso a linha e a coluna não se encontre numa borda
     else:
+        #verifica se não existe coordenadas no caminho e se a coluna e a linha são as coordenadas da peça
         if (len(caminho)==0 and [linha, coluna] in nao_ir):
             contador+=1
+            #caso o contador seja igual aos espaços vazios que existem no perimetro da peça quer dizer que ele ja percorreu os espaços possíveis
             if(contador==len(verifica_perimetro(nao_ir[0][0],nao_ir[0][1]))):
+                #o robo não consegue chegar lá então o caminho é vazio
                 return []
         
+        #na primeira vez ele irá adicionar a coordenada da peça no array
+        #caso a coordena já exista no array não é necessário voltar a inseri-la 
         if [linha, coluna] not in nao_ir:
             nao_ir.append([linha, coluna])
+            
+        #criamos um array coordenadas que irá receber as coordenadas em cruz onde existem espaços vazios
         coordenadas = verifica_perimetro(linha,coluna)
         
+        #caso hajam coordenadas vazias à volta da peça
         if coordenadas != []:
+            #iremos percorrer as coordenadas
             for i in range(len(coordenadas)):
+                #caso a coordena não esteja no array nao_ir
                 if(coordenadas[i] not in nao_ir):
+                    #irá adcionar a coordenada ao caminho
                     caminho.append([coordenadas[i][0], coordenadas[i][1]])
+                    #irá chamar a recursiva para verificar a coordenada que adicionou ao caminho
                     return melhor_rota(coordenadas[i][0], coordenadas[i][1],
                                 caminho, nao_ir, contador)
+            
+            #caso tenha percorrido todas as coordenadas e nao tenha chamado a recursiva, ou seja entrou num beco sem saida
+            #elemina a ultima posição do array caminho
             caminho.pop()
-            return melhor_rota(coordenadas[-1][0], coordenadas[-1][1],
-                                caminho, nao_ir, contador)
+            
+            #verifica se  tem coordenadas no array caminho
+            if(len(caminho)>0):
+                #chama a recursiva na ultima poscição do array caminho para verificar se ainda consegue chegar a uma borda
+                return melhor_rota(caminho[-1][0], caminho[-1][1],
+                                    caminho, nao_ir, contador)
+            
+            #caso tenha voltado ao início
+            else:
+                #chama a recursiva na poscição da peça para verificar se ainda consegue chegar a uma borda
+                return melhor_rota(nao_ir[0][0], nao_ir[0][1],
+                                    caminho, nao_ir, contador)
+        
+        #caso não hajam coordenadas vazias à volta da peça
         else:
             return []
 
@@ -568,7 +647,7 @@ def verifica_peca(peca, linha, coluna):
                 if(len(verifica_perimetro(i,j))>0):
                     matriz_jogo[i][j] = " "
  
- #funcao para verificar se fez O
+#funcao para verificar se fez O
 def verifica_bola():
     global matriz_jogo, pontos
     
@@ -710,6 +789,7 @@ def verifica_x(linha, coluna):
     return False
  
  #coordenada para ver se tem um X no 3x3 dentro de 5x5
+
 def coordenadas_perimentros_vezes(linha, coluna):
     global matriz_jogo
 
@@ -733,7 +813,7 @@ def coordenadas_perimentros_vezes(linha, coluna):
     
     return coordenadas_aux
 
- #coordenada para ver se tem + no 3x3 dentro do 5x5
+#coordenada para ver se tem + no 3x3 dentro do 5x5
 def coordenadas_perimentros_mais(linha, coluna):
     global matriz_jogo
 
