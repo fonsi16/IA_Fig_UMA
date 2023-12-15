@@ -41,14 +41,9 @@ robo_y = TAMANHO_AMBIENTE
 #Array da matriz/ambiente de jogo
 matriz_jogo =[]
 #Array das peças lidas no inicio do jogo
-"""
+
 pecas = []
-"""
-pecas = ["X", "O", "X", "O", "O",
-         "O", "X", "O", "O", "O",
-         "X", "O", "X", "+", "O",
-         "O", "O", "O", "O", "O",
-         "O", "O", "O", "O", "O"]
+
 
 #OBJETOS
 #Brick do robô
@@ -148,7 +143,7 @@ def vira_esquerda():
     #Diz que vai virar para a esquerda
     ev3.speaker.say("Left")    
     #Vira para a esquerda 90 graus
-    pernas.turn(ANGULO_RODAR)
+    pernas.turn(0.75*ANGULO_RODAR)
     #Espera 1 segundo
     wait(1000)
  
@@ -168,7 +163,7 @@ def gira():
     #Diz que vai virar
     ev3.speaker.say("Turn")
     #Vira 180 graus
-    pernas.turn(2*ANGULO_RODAR)
+    pernas.turn(-1.75*ANGULO_RODAR)
     #Espera 1 segundo
     wait(1000)
 
@@ -506,7 +501,7 @@ def numero_pecas(peca):
                 #Aumenta o contador
                 contador += 1
     return contador
-    
+
 #Funcao para colocar a peca que recebeu na matriz
 def coloca_peca(peca):
 
@@ -545,8 +540,8 @@ def coloca_peca(peca):
             matriz.inserir_objeto_matriz(peca,x,y,matriz_jogo)
             matriz.imprime_matriz(matriz_jogo)
             voltar(volta)
-            matriz.imprime_matriz(matriz_jogo)
             verifica_peca(peca,x,y)
+            matriz.imprime_matriz(matriz_jogo)
             pecas.pop(0)
 
 #Funcao chamada quando ele coloca uma peca na matriz de jogo
@@ -877,7 +872,6 @@ def verifica_mais(linha, coluna):
         return True
     return False
 
-
 #Funcao que sera chamada quando fizer uma figura, para retirar as pecas que formaram essa mesma figura          
 def limpa_pecas(coordenadas_limpar):
     global matriz_jogo
@@ -902,7 +896,7 @@ def retira_pontos():
                 contador += 1
 
     #Percorre o array de pecas que sobraram e adiciona ao contador
-    for i in len(pecas):
+    for i in range(len(pecas)):
         if pecas[i] != " ":
             contador += 1
 
@@ -920,7 +914,7 @@ def jogar():
     global matriz_jogo, pecas
     wait(5000)
     for i in range(len(pecas)):
-        coloca_peca(pecas[i])
+        coloca_peca(pecas[0])
         
     ev3.speaker.say("I go hard in Salsa Jeans")
     
@@ -943,7 +937,8 @@ matriz.imprime_matriz(matriz_jogo)
 """
 
 ev3.speaker.beep()
-#leitura_objetos()
+leitura_objetos()
+print(pecas)
 #larga_objeto()
 jogar()
 retira_pontos()
