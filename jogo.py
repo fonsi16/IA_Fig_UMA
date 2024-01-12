@@ -1096,7 +1096,7 @@ def maximo_pontos(figuras):
                 maior_valor = maximo_atual
 
                 if i == 0:
-                    maior_figura = "bola"
+                    maior_figura = "0"
                 elif i == 1:
                     maior_figura = "+"
                 elif i == 2:
