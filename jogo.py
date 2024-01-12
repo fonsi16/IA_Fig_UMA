@@ -938,13 +938,13 @@ def jogar():
                             conta_bolas=0
                             ordem.pop(z)
                     elif tipo=="+":
-                        coordenadas=procura_coordenada_mais_ve(ordem[z], conta_mais)
+                        coordenadas=procura_coordenada_mais_e_vezes(ordem[z], conta_mais)
                         coloca_peca(pecas[i],coordenadas[0],coordenadas[1])
                         if conta_mais==ordem[z][0]:
                             conta_mais=0
                             ordem.pop(z)
                     elif tipo=="*":
-                        coordenadas=procura_coordenada_mais_ve(ordem[z], conta_vezes)
+                        coordenadas=procura_coordenada_mais_e_vezes(ordem[z], conta_vezes)
                         coloca_peca(pecas[i],coordenadas[0],coordenadas[1])
                         if conta_vezes==ordem[z][0]:
                             conta_vezes=0
