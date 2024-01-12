@@ -17,6 +17,14 @@ def cria_matriz(tamanho):
             matriz[i].append(" ")  # Adiciona espaços em branco para cada célula da matriz
     return matriz  # Retorna a matriz preenchida com espaços em branco
 
+def cria_matriz_heuristica(tamanho):
+    matriz = []
+    for i in range(tamanho):
+        matriz.append([])
+        for z in range(tamanho):
+            matriz[i].append([])
+    return matriz
+
 # Imprime a matriz formatada
 def imprime_matriz(matriz):
     # Imprime um cabeçalho para a matriz de jogo
