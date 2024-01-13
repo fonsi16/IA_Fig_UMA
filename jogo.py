@@ -149,12 +149,9 @@ def vira_direita():
         sentido_robo = ESTE
     elif sentido_robo == ESTE:
         sentido_robo = SUL
-    #Diz que vai virar para a direta
-    # ev3.speaker.say("Right")
+
     #Vira para a direita 90 graus
     pernas.turn(-ANGULO_RODAR)
-    #Espera 1 segundo
-    # wait(1000)
 
 #Vira o robô 90 graus para a esquerda
 def vira_esquerda():
@@ -171,8 +168,6 @@ def vira_esquerda():
         sentido_robo = NORTE  
     #Vira para a esquerda 90 graus
     pernas.turn(0.75*ANGULO_RODAR)
-    #Espera 1 segundo
-    # wait(1000)
  
 #Vira o robô 180 graus
 def gira():
@@ -189,8 +184,6 @@ def gira():
         sentido_robo = OESTE
     #Vira 180 graus
     pernas.turn(-1.75*ANGULO_RODAR)
-    #Espera 1 segundo
-    # wait(1000)
 
 #Deteta a cor passada no sensor de cores
 def deteta_cor():
@@ -212,7 +205,7 @@ def deteta_cor():
 
 #Fecha a garra do robô de modo a agarrar uma peça
 def agarra_objeto():
-    #Espera um segundo
+    #Espera meio segundo
     wait(500)
     #Corre o motor a uma certa velocidade durante um período de tempo (Velocidade, Tempo)
     garra.run_time(200, 2000)
@@ -223,7 +216,7 @@ def agarra_objeto():
 
 #Abre a garra do robô de modo a largar uma peça
 def larga_objeto():
-    #Espera um segundo
+    #Espera meio segundo
     wait(500)
     #Corre o motor a uma certa velocidade negativa durante um período de tempo (Velocidade, Tempo)
     garra.run_time(-200, 2000)
@@ -358,10 +351,15 @@ def movimento(linha_atual, coluna_atual, proxima_linha, proxima_coluna):
 #Volta para base percorrendo a rota/caminho
 def voltar (caminho, linhas):
     
+    # Percorre a rota/caminho assim indo da sua posição onde meteu a peça até à base
     for i in range(len(caminho)-1):
         movimento(caminho[i][0], caminho[i][1], caminho[i+1][0], caminho[i+1][1])
     
-    if not linhas:
+    # Se o robo foi por linhas, sai da linha e depois muda o sentido
+    if linhas:
+        pernas.straight(DISTANCIA_ENTRE_QUADRADOS*0.5)
+        muda_sentido(SUL)
+    else:
         muda_sentido(SUL)
 
 #Funcao que devolve a melhor (primeira possível) rota/caminho para chegar a uma posição na matriz
@@ -529,11 +527,12 @@ def posicionar(linha, coluna):
         pernas.straight(DISTANCIA_ENTRE_QUADRADOS*0.5)
         # Larga a peça
         larga_objeto()
-
+        # Anda meio quadrado para trás de modo a se posicionar na posição inicial
         pernas.straight(-DISTANCIA_ENTRE_QUADRADOS*0.5)
 
         # Reverte a rota/caminho denovo assim ficando da posição ate a localização do robô
         caminho.reverse()
+        # Retorna a rota/caminho
         return caminho, True
 
 # Função para limpar as peças nas coordenadas especificadas
@@ -918,13 +917,11 @@ def coloca_peca(peca, x, y):
         #Verificar se fez uma figura depois de colocar essa peca
          
         # Se foi por linhas
+        # Se o linhas é verdadeiro, significa que teve que ir pelas linhas para meter a peça pois a peça nao tinha um caminho possivel
         if linhas:
-            # Se o linha é verdadeiro, significa que teve que ir pelas linhas para meter a peça pois a peça nao tinha um caminho possivel
             matriz.inserir_objeto_matriz(peca,x,y,matriz_jogo)
             #Voltar para a casa inicial
             voltar(volta, linhas)
-            pernas.straight(DISTANCIA_ENTRE_QUADRADOS*0.5)
-            muda_sentido(SUL)
             #Verificar se fez uma figura depois de colocar essa peca
             verifica_peca(peca,x,y)
             matriz.imprime_matriz(matriz_jogo)
@@ -942,70 +939,89 @@ def coloca_peca(peca, x, y):
             verifica_peca(peca,x,y)
             matriz.imprime_matriz(matriz_jogo)
 
+# Função para procurar uma coordenada vazia na matriz de jogo
 def procura_coordenada_vazia():
     global matriz_jogo
     coordenadas=[]
+    # Percorre a matriz de jogo
     for i in range(1,TAMANHO_AMBIENTE-1):
         for j in range(1,TAMANHO_AMBIENTE-1):
+            # Se encontrar uma coordenada vazia adiciona ao array coordenadas
             if matriz_jogo[i][j]==" ":
                 coordenadas=[i,j]
                 return coordenadas
 
-def procura_coordenada(ordem, conta):
+# Função para procurar uma coordenada na matriz de heuristica que corresponda à peça da figura especificada
+def procura_coordenada(peca_fig):
     global matriz_heuristica, matriz_jogo
 
     for i in range(TAMANHO_MATRIZ):
         for j in range(TAMANHO_MATRIZ):
-            if matriz_heuristica[i][j]!=[] and ordem==matriz_heuristica[i][j][0] and matriz_jogo[i+1][j+1]==" ":
-                matriz_heuristica[i][j].pop(0)
-                coordenadas=[i+1,j+1]
+            # Verifica se a posição na matriz heurística não está vazia, se a peça da figura corresponde ao primeiro elemento da lista na matriz heurística e se a posição correspondente na matriz de jogo está vazia
+            if matriz_heuristica[i][j] != [] and peca_fig == matriz_heuristica[i][j][0] and matriz_jogo[i+1][j+1] == " ":
+                # Remove a peça da figura da lista na matriz heurística
+                matriz_heuristica[i][j].pop(0)  
+                # Coordenadas da posição vazia na matriz de jogo
+                coordenadas = [i+1, j+1]  
                 return coordenadas
 
-def procura_coordenada_mais_e_vezes(ordem, conta):
+# Função para procurar uma coordenada na matriz de heuristica que corresponda à peça da figura especificada, que neste caso é ou um x ou um +
+def procura_coordenada_mais_e_vezes(peca_fig, conta):
     global matriz_heuristica, matriz_jogo
 
     for i in range(TAMANHO_MATRIZ):
         for j in range(TAMANHO_MATRIZ):
-            if i == 2 and j == 2 and conta != 9 and ordem[0] == 9:
+            # Se for uma peça grande e for meter uma peça no meio tem de meter todas as outras peças primeiro
+            if i == 2 and j == 2 and conta != 9 and peca_fig[0] == 9:
                 continue
-            if matriz_heuristica[i][j] and matriz_jogo[i+1][j+1] == " ":
-                if ordem == matriz_heuristica[i][j][0]:
-                    matriz_heuristica[i][j].pop(0)
-                    coordenadas = [i+1, j+1]
-                    return coordenadas
-                # elif ordem in matriz_heuristica[i][j]:
-                #     index = matriz_heuristica[i][j].index(ordem)
-                #     matriz_heuristica[i][j].remove(ordem)
-                #     coordenadas = [i+1, j+1]
-                #     return coordenadas
-                       
-def procura_coordenada_menos(ordem, conta, tamanho):
+            # Verifica se a posição na matriz heurística não está vazia, se a peça da figura corresponde ao primeiro elemento da lista na matriz heurística e se a posição correspondente na matriz de jogo está vazia
+            if matriz_heuristica[i][j] != [] and peca_fig == matriz_heuristica[i][j][0] and matriz_jogo[i+1][j+1] == " ":
+                # Remove a peça da figura da lista na matriz heurística
+                matriz_heuristica[i][j].pop(0)
+                # Coordenadas da posição vazia na matriz de jogo
+                coordenadas = [i+1, j+1]
+                return coordenadas
+
+# Função para procurar uma coordenada na matriz de heuristica que corresponda à peça da figura especificada, que neste caso é um -
+def procura_coordenada_menos(peca_fig, conta, tamanho):
     global matriz_heuristica, matriz_jogo
     coordenadas=[]
+    # Se for um menos de 2 peças
     if conta%2!=0 or tamanho==2:
         for i in range(TAMANHO_MATRIZ):
             for j in range(TAMANHO_MATRIZ):
-                if matriz_heuristica[i][j]!=[] and ordem==matriz_heuristica[i][j][0] and matriz_jogo[i+1][j+1]==" ":
+                # Verifica se a posição na matriz heurística não está vazia, se a peça da figura corresponde ao primeiro elemento da lista na matriz heurística e se a posição correspondente na matriz de jogo está vazia
+                if matriz_heuristica[i][j]!=[] and peca_fig==matriz_heuristica[i][j][0] and matriz_jogo[i+1][j+1]==" ":
+                    # Remove a peça da figura da lista na matriz heurística
                     matriz_heuristica[i][j].pop(0)
+                    # Coordenadas da posição vazia na matriz de jogo
                     coordenadas=[i+1,j+1]
                     return coordenadas
+    # Se for um menos de 3 peças
     else:
         contador=0
         for i in range(TAMANHO_MATRIZ):
             for j in range(TAMANHO_MATRIZ):
-                if matriz_heuristica[i][j]!=[] and ordem==matriz_heuristica[i][j][0] and matriz_jogo[i+1][j+1]==" ":
+                # Verifica se a posição na matriz heurística não está vazia, se a peça da figura corresponde ao primeiro elemento da lista na matriz heurística e se a posição correspondente na matriz de jogo está vazia
+                if matriz_heuristica[i][j]!=[] and peca_fig==matriz_heuristica[i][j][0] and matriz_jogo[i+1][j+1]==" ":
+                    # Usa o contador de modo a não fazer um menos de 2 peças
                     if contador==1:    
+                        # Remove a peça da figura da lista na matriz heurística
                         matriz_heuristica[i][j].pop(0)
+                        # Coordenadas da posição vazia na matriz de jogo
                         coordenadas=[i+1,j+1]
                         return coordenadas
                     else:
                         contador+=1
 
+# Função para remover figuras inteiras, isto é, todas as peças de uma figura do array inicial de peças
 def remove_figuras(peca, quantidade):
     global pecas
     contador = 0
     i = 0
+    # Enquanto o contador não for igual à quantidade de peças da figura e o i não for maior que o tamanho do array de peças
     while contador < quantidade and i < len(pecas):
+        # Se a peça for igual à peça da figura, remove a peça do array de peças e incrementa o contador
         if pecas[i] == peca:
             pecas.pop(i)
             contador += 1
