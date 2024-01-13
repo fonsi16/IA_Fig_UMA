@@ -657,7 +657,6 @@ def verifica_bola():
                             # Caso verifique se que é uma bola adiciona os pontos e limpa as coordenadas e acaba a função
                             else:
                                 limpa_pecas(coordenadas_limpar)
-                                pontos += 2**(len(coordenadas_limpar))
                                 ev3.speaker.say("I Did a Ball")
                                 ev3.speaker.say(str(2**(len(coordenadas_limpar))))
                                 return 0
@@ -666,204 +665,232 @@ def verifica_bola():
                     if (bolas_de_seguida == 1 and matriz_jogo[i+1][j+1] == "0"):
                         coordenadas_limpar.append([i+1, j+1])
                         limpa_pecas(coordenadas_limpar)
-                        pontos += 2**(len(coordenadas_limpar))
                         ev3.speaker.say("I Did a Ball")
                         ev3.speaker.say(str(2**(len(coordenadas_limpar))))
                         return 0
 
-
-#FIQUEI AQUI
-
-
+# Funcao para verificar se fez a figura do x
 def verifica_x(linha, coluna):
     global matriz_jogo, pontos
 
-    #Se houver um x na coluna à esquerda e linha de cima, E na linha de baixo e à direita,
-    #E na linha de baixo e à esquerda, E na linha de cima e à direita 
+    # Verifica se tem um x em cima, em baixo, à direita e à esquerda obliquamente ao ultimo x que colocou
     if (matriz_jogo[linha-1][coluna-1] == "*" and
         matriz_jogo[linha+1][coluna+1] == "*" and 
         matriz_jogo[linha+1][coluna-1] == "*" and 
         matriz_jogo[linha-1][coluna+1] == "*"):
         
-        #Vai substituir essas posicoes de pecas e a do meio da figura por " " 
+        # Se a condição for verdadeira, as peças são alteradas para " " porque a figura foi formada
         matriz_jogo[linha-1][coluna-1] = " "
         matriz_jogo[linha+1][coluna+1] = " "
         matriz_jogo[linha+1][coluna-1] = " "
         matriz_jogo[linha-1][coluna+1] = " "
         matriz_jogo[linha][coluna] = " "
         
-        #Vai dizer a figura que fez e os pontos dessa figura e adicionar esses pontos ao total de pontos
+        # Informa que a figura de "*" foi formada e exibe a pontuação correspondente
         ev3.speaker.say("Did a X")
         ev3.speaker.say(str(2**5))
-        pontos += 2**5
         return True
+    
     return False
  
  #coordenada para ver se tem um X no 3x3 dentro de 5x5
 
-def coordenadas_perimentros_vezes(linha, coluna):
+# Função para obter as coordenadas das peças "*" que estão ao redor de uma determinada posição
+def coordenadas_perimetros_vezes(linha, coluna):
     global matriz_jogo
 
-    #Lista onde de posicoes onde tem de ter x para fazer a figura
-    coordenadas=[[linha+1,coluna+1],[linha+1, coluna-1], [linha-1, coluna+1], [linha-1, coluna-1]]
+    # Lista de posições onde devem ter "x" para formar a figura
+    coordenadas = [[linha+1, coluna+1], [linha+1, coluna-1], [linha-1, coluna+1], [linha-1, coluna-1]]
 
-    #Lista auxiliar para guardar as coordenadas das pecas x que tem na matriz
-    coordenadas_aux=[]
+    # Lista auxiliar para guardar as coordenadas das peças "x" presentes na matriz
+    coordenadas_aux = []
 
-    #Vai percorrer a lista de coordenadas
+    # Percorre a lista de coordenadas
     for i in range(len(coordenadas)):
         
-        #coordenadas[i][0] pode ser linha+1 ou linha-1
-        #coordenadas[i][1] pode ser coluna+1 ou coluna-1 
-        #Assim se na matriz[linha+/-1][coluna+/-1] existe x, e essas posicoes estao dentro da matriz de jogo
-        #adiciona à lista de coordenadas auxiliares
-        if (matriz_jogo[coordenadas[i][0]][coordenadas[i][1]]=="*" and
-            (coordenadas[i][0]>1 and coordenadas[i][0]<5) and
-            (coordenadas[i][1]>1 and coordenadas[i][1]<5)):
+        # Verifica se a posição contém uma peça "*" e se está dentro dos limites da matriz de jogo
+        if (matriz_jogo[coordenadas[i][0]][coordenadas[i][1]] == "*" and
+            (coordenadas[i][0] > 1 and coordenadas[i][0] < 5) and
+            (coordenadas[i][1] > 1 and coordenadas[i][1] < 5)):
+            # Adiciona as coordenadas à lista auxiliar
             coordenadas_aux.append(coordenadas[i])
     
+    # Retorna a lista de coordenadas
     return coordenadas_aux
 
-#coordenada para ver se tem + no 3x3 dentro do 5x5
-def coordenadas_perimentros_mais(linha, coluna):
+# Função para obter as coordenadas das peças "+" que estão ao redor de uma determinada posição
+def coordenadas_perimetros_mais(linha, coluna):
     global matriz_jogo
-    # coordenadas=[[linha, coluna]]
-    coordenadas=[[linha+1,coluna], [linha-1, coluna], [linha,coluna-1], [linha,coluna+1]]
-    coordenadas_aux=[]
-    for i in range(len(coordenadas)):
-        if (matriz_jogo[coordenadas[i][0]][coordenadas[i][1]]=="+" and
-            (coordenadas[i][0]>1 and coordenadas[i][0]<5) and
-            (coordenadas[i][1]>1 and coordenadas[i][1]<5)):
-            coordenadas_aux.append(coordenadas[i])
-    
-    return coordenadas_aux
 
+    # Lista de posições onde devem ter "+" para formar a figura
+    coordenadas = [[linha+1, coluna], [linha-1, coluna], [linha, coluna-1], [linha, coluna+1]]
+    
+    # Lista auxiliar para armazenar as coordenadas das peças "+" presentes na matriz
+    coordenadas_aux = []  
+
+    # Percorre a lista de coordenadas
+    for i in range(len(coordenadas)):
+        # Verifica se a posição contém uma peça "+" e se está dentro dos limites da matriz de jogo
+        if (matriz_jogo[coordenadas[i][0]][coordenadas[i][1]] == "+" and
+            (coordenadas[i][0] > 1 and coordenadas[i][0] < 5) and
+            (coordenadas[i][1] > 1 and coordenadas[i][1] < 5)):
+            # Adiciona as coordenadas à lista auxiliar
+            coordenadas_aux.append(coordenadas[i])  
+    
+    # Retorna a lista de coordenadas
+    return coordenadas_aux  
+
+# Funcao para verificar se fez a figura do +
 def verifica_mais(linha, coluna):
     global matriz_jogo, pontos
 
-    #Aqui verifica se tem um + em cima, em baixo, à direita e à esquerda do ultimo + que colocou
+    # Verifica se há um "+" acima, abaixo, à direita e à esquerda da última posição onde foi colocado um "+"
     if (matriz_jogo[linha-1][coluna] == "+" and
         matriz_jogo[linha+1][coluna] == "+" and 
         matriz_jogo[linha][coluna+1] == "+" and 
         matriz_jogo[linha][coluna-1] == "+"):
         
-        #Se a condicao se se verificar vai mudar essas pecas para " " porque fez a figura
+        # Se a condição for verdadeira, as peças são alteradas para " " porque a figura foi formada
         matriz_jogo[linha-1][coluna] = " "
         matriz_jogo[linha+1][coluna] = " "
         matriz_jogo[linha][coluna+1] = " "
         matriz_jogo[linha][coluna-1] = " "
         matriz_jogo[linha][coluna] = " "
         
-        #Diz que fez o mais e os pontos, e adiciona à variavel de pontos finais esses mesmos pontos que fez agora
+        # Informa que a figura de "+" foi formada e exibe a pontuação correspondente
         ev3.speaker.say("Did a plus")
         ev3.speaker.say(str(2**5))
-        pontos += 2**5
         return True
     return False
 
-#Funcao chamada quando ele coloca uma peca na matriz de jogo
+# Função chamada quando ele coloca uma peça na matriz de jogo
 def verifica_peca(peca, linha, coluna):
     global pontos, matriz_jogo
+
+    # Lista de coordenadas para limpar
     coordenadas_limpar=[]
+    # Variável para contar quantas peças seguidas existem
     contador=0
     seguida=True
     
+    # Verifica se a peça é um "-"
     if peca == "-":
         contador_auxiliar = 0 
-    
-        #Percorre a linha do ultimo "-" metido
+        
+        # Percorre a linha do último "-" metido
         for i in range(len(matriz_jogo[linha])):
+            # Caso seja um "-" e esteja seguida, incrementa o contador
             if(matriz_jogo[linha][i]=="-" and seguida):
                 contador_auxiliar += 1
                 coordenadas_limpar.append([linha,i])
                 if contador_auxiliar>contador:
                     contador=contador_auxiliar
+            # Caso seja um "-" mas não esteja seguida, começa a contar os de seguida de novo
             elif(matriz_jogo[linha][i]=="-" and not seguida):
                 seguida=True
                 contador_auxiliar += 1
                 coordenadas_limpar = []
                 coordenadas_limpar.append([linha,i])
+            # Caso não seja um "-", não está seguida e reseta o contador
             else:
                 seguida = False
                 contador_auxiliar = 0
-                
+        
+        # Caso tenha mais que 1 "-" seguido, limpa as peças e acaba a função
         if(contador>1):
             limpa_pecas(coordenadas_limpar)
       
+    # Verifica se a peça é um "+"
     if peca == "+":
-        #peca máxima
+        # Verifica se fez a figura do "+" máxima (de 9 peças) que so tem um lugar possivel
         if (numero_pecas(peca)>=(TAMANHO_MATRIZ*2-1) and (coluna==TAMANHO_AMBIENTE//2 or linha == TAMANHO_AMBIENTE//2)):
             for i in range(1,TAMANHO_AMBIENTE):
+                # Se é seguida
                 if(seguida):
+                    # Verifica se está na linha e na coluna do meio, senao nao é possivel
                     if not (matriz_jogo[TAMANHO_AMBIENTE//2][i] == "+" and matriz_jogo[i][TAMANHO_AMBIENTE//2] == "+"):
                         seguida = False
+            # Se depois de verificar se é seguida continua a ser seguida quer dizer que fez figura máxima e limpa as peças
             if seguida:
                 for i in range(1,TAMANHO_AMBIENTE):
                     matriz_jogo[TAMANHO_AMBIENTE//2][i] = " "
                     matriz_jogo[i][TAMANHO_AMBIENTE//2] = " "
-        #menor
-        #cantos ->> ímpossivel
+
+        # Como não é a figura máxima, verifica se fez a figura do "+" pequena (de 5 peças)
+        # Se meteu em algum dos cantos, não é possivel fazer a figura
         if((linha==1 and coluna==1) or
             (linha==1 and coluna==TAMANHO_AMBIENTE-1) or
             (linha==TAMANHO_AMBIENTE-1 and coluna== 1) or
             (linha==TAMANHO_AMBIENTE-1 and coluna==TAMANHO_AMBIENTE-1)):
             return 0
 
-        #casos possíveis
+        # Se não meteu em nenhum dos cantos
         else:
-            coordenadas=coordenadas_perimentros_mais(linha, coluna)
-            for i in range(len(coordenadas)):
-                if verifica_mais(coordenadas[i][0], coordenadas[i][1]):
-                    break 
+            # Obtem todas as coordenadas onde pode fazer a figura do "+" a volta do que meteu
+            coordenadas=coordenadas_perimetros_mais(linha, coluna)
+            # Se o "+" que meteu não está a fazer a figura do "+", isto é, não é o meio da figura
+            if not verifica_mais(linha, coluna):
+                # Percorre as coordenadas dos ao redor
+                for i in range(len(coordenadas)):
+                    # Verifica se alguma dessas coordenadas faz a figura do "+"
+                    if verifica_mais(coordenadas[i][0], coordenadas[i][1]):
+                        break 
     
+    # Verifica se a peça é um "*"
     if peca == "*":
-        #peca máxima
+        # Verifica se fez a figura do "*" máxima (de 9 peças) que so tem um lugar possivel
         if (numero_pecas(peca)>=(TAMANHO_MATRIZ*2-1) and (linha>=2 and linha<=4) and (coluna>=2 and coluna<=4) ):
             for i in range(1,TAMANHO_AMBIENTE):
+                # Se é seguida
                 if seguida:
+                    # Verifica se está nas posições da peça máxima, senao nao é possivel
                     if not (matriz_jogo[i][i]=="*" and matriz_jogo[i][TAMANHO_AMBIENTE-i]=="*"):
                         seguida = False
             
+            # Se depois de verificar se é seguida continua a ser seguida quer dizer que fez figura máxima e limpa as peças
             if seguida:
-                # pontos += 2**(TAMANHO_MATRIZ*2-1)
                 for i in range(1,TAMANHO_AMBIENTE):
                     matriz_jogo[i][i] = " "
                     matriz_jogo[i][TAMANHO_AMBIENTE-i] = " "
         
-        #pecas possiveis
-        coordenadas=coordenadas_perimentros_vezes(linha, coluna)
+        # Como não é a figura máxima, verifica se fez a figura do "*" pequena (de 5 peças)
+        # Obtem todas as coordenadas onde pode fazer a figura do "*" a volta do que meteu            
+        coordenadas=coordenadas_perimetros_vezes(linha, coluna)
+        # Se o "*" que meteu não está a fazer a figura do "*", isto é, não é o meio da figura
         if not verifica_x(linha, coluna):
+            # Percorre as coordenadas dos ao redor
             for i in range(len(coordenadas)):
+                # Verifica se alguma dessas coordenadas faz a figura do "*"
                 if verifica_x(coordenadas[i][0], coordenadas[i][1]):
                     break 
 
+    # Verifica se a peça é um "0"/bola
     if peca == "0":
-        #peca máxima
+        # Verifica se fez a figura da bola máxima (de 16 peças) que so tem um lugar possivel
         if (numero_pecas(peca)>=((TAMANHO_MATRIZ*TAMANHO_MATRIZ) - ((TAMANHO_MATRIZ-2)*(TAMANHO_MATRIZ-2))) and (linha==1 or linha==TAMANHO_MATRIZ) and (coluna==1 or coluna==TAMANHO_MATRIZ) ):
             for i in range(1,TAMANHO_AMBIENTE):
-                #verifica se é a peca maxima
+                # Verifica a primeira e ultima linhas e colunas
                 if not (matriz_jogo[1][i] == "0" and
                         matriz_jogo[TAMANHO_MATRIZ][i] == "0" and
                         matriz_jogo[i][1] == "0" and
                         matriz_jogo[i][TAMANHO_MATRIZ] == "0"):
-                    #caso haja uma peca diferentede "0" acaba a verificacao
+                    # Caso haja uma peca diferente de "0" acaba a verificação
                     seguida=False
                     break
-                    
+
+            # Se depois de verificar se é seguida continua a ser seguida quer dizer que fez figura máxima e limpa as peças  
             if seguida:
-                #caso seja a peca maxima    
                 for i in range(1,TAMANHO_AMBIENTE):
                     matriz_jogo[1][i] = " "
                     matriz_jogo[TAMANHO_MATRIZ][i]= " "
                     matriz_jogo[i][1]= " "
                     matriz_jogo[i][TAMANHO_MATRIZ]= " "
-                    
-                # pontos += 2**((TAMANHO_MATRIZ*TAMANHO_MATRIZ) - ((TAMANHO_MATRIZ-2)*(TAMANHO_MATRIZ-2))) 
                 
+        # Como não é a figura máxima, verifica se fez as figuras das bolas pequenas (de 12/8/4 peças)
         else: 
-            verifica_bola()     
+            verifica_bola()
 
-#Funcao para colocar a peca que recebeu na matriz
+#Funcao para colocar a peca que recebeu na matriz de jogo
 def coloca_peca(peca, x, y):
 
     global matriz_jogo
@@ -874,7 +901,7 @@ def coloca_peca(peca, x, y):
     #Se recebeu uma coordenada
     if coordenada is not None:
 
-        #adiciona às variaveis os valores dessa coordenada 
+        #Adiciona às variaveis os valores dessa coordenada 
         x = coordenada[0]
         y = coordenada[1]
         
@@ -883,10 +910,11 @@ def coloca_peca(peca, x, y):
         
         #Variavel que guarda as coordenadas/array necessarias para voltar e se foi por linhas meter a peça
         volta, linhas = posicionar(x,y)
-         
+        
         #Se consegue por a peca nesse lugar vai colocar a peca e voltar para a casa inicial
         #Verificar se fez uma figura depois de colocar essa peca
          
+        # Se foi por linhas
         if linhas:
             # Se o linha é verdadeiro, significa que teve que ir pelas linhas para meter a peça pois a peça nao tinha um caminho possivel
             matriz.inserir_objeto_matriz(peca,x,y,matriz_jogo)
@@ -895,6 +923,7 @@ def coloca_peca(peca, x, y):
             #Verificar se fez uma figura depois de colocar essa peca
             verifica_peca(peca,x,y)
             matriz.imprime_matriz(matriz_jogo)
+        # Se foi por caminho normal
         else:
             #Pequenos ajustes para meter a peca
             pernas.straight(DISTANCIA_ENTRE_QUADRADOS*0.75)
