@@ -154,7 +154,7 @@ def vira_direita():
     #Vira para a direita 90 graus
     pernas.turn(-ANGULO_RODAR)
     #Espera 1 segundo
-    wait(1000)
+    # wait(1000)
 
 #Vira o robô 90 graus para a esquerda
 def vira_esquerda():
@@ -172,7 +172,7 @@ def vira_esquerda():
     #Vira para a esquerda 90 graus
     pernas.turn(0.75*ANGULO_RODAR)
     #Espera 1 segundo
-    wait(1000)
+    # wait(1000)
  
 #Vira o robô 180 graus
 def gira():
@@ -190,7 +190,7 @@ def gira():
     #Vira 180 graus
     pernas.turn(-1.75*ANGULO_RODAR)
     #Espera 1 segundo
-    wait(1000)
+    # wait(1000)
 
 #Deteta a cor passada no sensor de cores
 def deteta_cor():
@@ -213,7 +213,7 @@ def deteta_cor():
 #Fecha a garra do robô de modo a agarrar uma peça
 def agarra_objeto():
     #Espera um segundo
-    wait(1000)
+    wait(500)
     #Corre o motor a uma certa velocidade durante um período de tempo (Velocidade, Tempo)
     garra.run_time(200, 2000)
     #Indica que agarrou uma peça
@@ -224,7 +224,7 @@ def agarra_objeto():
 #Abre a garra do robô de modo a largar uma peça
 def larga_objeto():
     #Espera um segundo
-    wait(1000)
+    wait(500)
     #Corre o motor a uma certa velocidade negativa durante um período de tempo (Velocidade, Tempo)
     garra.run_time(-200, 2000)
     #Indica que largou a peça
@@ -356,12 +356,13 @@ def movimento(linha_atual, coluna_atual, proxima_linha, proxima_coluna):
         anda_frente()
 
 #Volta para base percorrendo a rota/caminho
-def voltar (caminho):
-        
+def voltar (caminho, linhas):
+    
     for i in range(len(caminho)-1):
         movimento(caminho[i][0], caminho[i][1], caminho[i+1][0], caminho[i+1][1])
     
-    muda_sentido(SUL)
+    if not linhas:
+        muda_sentido(SUL)
 
 #Funcao que devolve a melhor (primeira possível) rota/caminho para chegar a uma posição na matriz
 def melhor_rota(linha, coluna, caminho, nao_ir, contador):
@@ -520,14 +521,16 @@ def posicionar(linha, coluna):
             movimento(caminho[i][0], caminho[i][1], caminho[i+1][0], caminho[i+1][1])
             # Depois de percorrer o tabuleiro até á coluna antes da de onde vai meter a peça anda meio quadrado para a frente de modo a se posicionar na linha
             if (i == TAMANHO_AMBIENTE - coluna - 2):
-                pernas.straight(DISTANCIA_ENTRE_QUADRADOS*0.75)
+                pernas.straight(DISTANCIA_ENTRE_QUADRADOS*0.5)
             
         # Muda o seu sentido para o sítio onde vai meter a peça
         muda_sentido(OESTE)
         # Anda meio quadrado para a frente de modo a se posicionar na posição para meter a peça
-        pernas.straight(DISTANCIA_ENTRE_QUADRADOS*0.75)
+        pernas.straight(DISTANCIA_ENTRE_QUADRADOS*0.5)
         # Larga a peça
         larga_objeto()
+
+        pernas.straight(-DISTANCIA_ENTRE_QUADRADOS*0.5)
 
         # Reverte a rota/caminho denovo assim ficando da posição ate a localização do robô
         caminho.reverse()
@@ -919,7 +922,9 @@ def coloca_peca(peca, x, y):
             # Se o linha é verdadeiro, significa que teve que ir pelas linhas para meter a peça pois a peça nao tinha um caminho possivel
             matriz.inserir_objeto_matriz(peca,x,y,matriz_jogo)
             #Voltar para a casa inicial
-            voltar(volta)
+            voltar(volta, linhas)
+            pernas.straight(DISTANCIA_ENTRE_QUADRADOS*0.5)
+            muda_sentido(SUL)
             #Verificar se fez uma figura depois de colocar essa peca
             verifica_peca(peca,x,y)
             matriz.imprime_matriz(matriz_jogo)
@@ -932,8 +937,7 @@ def coloca_peca(peca, x, y):
             matriz.inserir_objeto_matriz(peca,x,y,matriz_jogo)
             matriz.imprime_matriz(matriz_jogo)
             #Voltar para a casa inicial
-            voltar(volta)
-            pernas.straight(DISTANCIA_ENTRE_QUADRADOS*0.75)
+            voltar(volta, linhas)
             #Verificar se fez uma figura depois de colocar essa peca
             verifica_peca(peca,x,y)
             matriz.imprime_matriz(matriz_jogo)
@@ -1635,7 +1639,7 @@ def conta_x(peca, pecas_figura):
                     
     return contador
 
-def conta_mais(peca, pecas_figura):
+def conta_mais_25(peca, pecas_figura):
     global pecas
     contador = 0
     contador_x = 0
@@ -1659,7 +1663,7 @@ def conta_mais(peca, pecas_figura):
                     
     return contador
 
-def conta_menos (peca, pecas_figura):
+def conta_menos_25 (peca, pecas_figura):
     global pecas
     contador = 0
     contador_menos = 0
@@ -1786,7 +1790,7 @@ def heuristica_bola3(pecas_bola, pecas_mais, pecas_menos, pecas_x):
     x_colocadas = 0
     mais_colocadas = 0
 
-    if (pecas_mais>=5 and pecas_x>=5 and (conta_mais("0",5)<=6 and conta_x("0",5)<=6)):
+    if (pecas_mais>=5 and pecas_x>=5 and (conta_mais_25("0",5)<=6 and conta_x("0",5)<=6)):
 
         posicoes_bola8 = [(3,2),(2,1),(1,1),(1,2),(1,3),(2,3),(3,3),(3,1)] 
 
@@ -1818,7 +1822,7 @@ def heuristica_bola3(pecas_bola, pecas_mais, pecas_menos, pecas_x):
             if peca == "-":
                 if(pecas_menos>2):
 
-                    bolas_antes_menos = conta_menos("0",3+menos_ordem)
+                    bolas_antes_menos = conta_menos_25("0",3+menos_ordem)
 
                     if(bolas_antes_menos <= 5):
                         coloca_peca(peca, posicoes_menos3[indexMenos][0], posicoes_menos3[indexMenos][1])
@@ -1880,7 +1884,7 @@ def heuristica_bola3(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                 if peca == "-":
                     if(pecas_menos>2):
 
-                        bolas_antes_menos = conta_menos("0",3+menos_ordem)
+                        bolas_antes_menos = conta_menos_25("0",3+menos_ordem)
 
                         if(bolas_antes_menos <= 5):
                             coloca_peca(peca, posicoes_menos3[indexMenos][0], posicoes_menos3[indexMenos][1])
@@ -1990,7 +1994,7 @@ def heuristica_bola3(pecas_bola, pecas_mais, pecas_menos, pecas_x):
             if peca == "-":
                 if(pecas_menos>2):
 
-                    bolas_antes_menos = conta_menos("0",3+menos_ordem)
+                    bolas_antes_menos = conta_menos_25("0",3+menos_ordem)
 
                     if(bolas_antes_menos <= 5):
                         coloca_peca(peca, posicoes_menos3[indexMenos][0], posicoes_menos3[indexMenos][1])
@@ -2088,7 +2092,7 @@ def heuristica_bola4(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                         pecas_menos -= 2
             
 
-    elif(pecas_mais>=9 and conta_mais("0",9)<=8):
+    elif(pecas_mais>=9 and conta_mais_25("0",9)<=8):
 
         posicoes_bola12 = [(1,1),(1,2),(1,4),(2,1),(4,1),(4,2),(2,4),(4,4),(3,4),(1,3),(3,1),(4,3)]
 
@@ -2127,7 +2131,7 @@ def heuristica_bola4(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                     pecas_menos -= 2
             
 
-    elif(pecas_mais>=5 and pecas_x>=5 and (conta_mais("0",5)<=7 and conta_x("0",5)<=7)):
+    elif(pecas_mais>=5 and pecas_x>=5 and (conta_mais_25("0",5)<=7 and conta_x("0",5)<=7)):
 
         posicoes_bola12 = [(1,1),(1,2),(1,3),(1,4),(2,1),(4,1),(2,4),(3,1),(3,4),(4,4),(4,3),(4,2)] 
 
@@ -2162,7 +2166,7 @@ def heuristica_bola4(pecas_bola, pecas_mais, pecas_menos, pecas_x):
             if peca == "-":
                 if(pecas_menos>2):
 
-                    bolas_antes_menos = conta_menos("0",3+menos_ordem)
+                    bolas_antes_menos = conta_menos_25("0",3+menos_ordem)
 
                     if(bolas_antes_menos <= 6):
                         coloca_peca(peca, posicoes_menos3[indexMenos][0], posicoes_menos3[indexMenos][1])
@@ -2228,7 +2232,7 @@ def heuristica_bola4(pecas_bola, pecas_mais, pecas_menos, pecas_x):
             if peca == "-":
                 if(pecas_menos>2):
 
-                    bolas_antes_menos = conta_menos("0",3+menos_ordem)
+                    bolas_antes_menos = conta_menos_25("0",3+menos_ordem)
 
                     if(bolas_antes_menos <= 7):
                         coloca_peca(peca, posicoes_menos3[indexMenos][0], posicoes_menos3[indexMenos][1])
@@ -2259,7 +2263,7 @@ def heuristica_bola4(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                         menos_ordem += 2
             
         
-    elif(pecas_mais>=5 and conta_mais("0",5)<=10):
+    elif(pecas_mais>=5 and conta_mais_25("0",5)<=10):
         
         posicoes_bola12 = [(1,1),(1,2),(1,3),(1,4),(2,1),(3,1),(4,1),(2,4),(4,2),(4,4),(4,3),(3,4)]
 
@@ -2423,8 +2427,8 @@ def heuristica_bola5(pecas_bola, pecas_mais, pecas_menos, pecas_x):
 
             if(pecas_menos>2):
 
-                bolas_antes_menos3 = conta_menos("0",3+menos_ordem)
-                bolas_antes_menos2 = conta_menos("0",2+menos_ordem)
+                bolas_antes_menos3 = conta_menos_25("0",3+menos_ordem)
+                bolas_antes_menos2 = conta_menos_25("0",2+menos_ordem)
 
                 if(bolas_antes_menos3 <= 13):
                     coloca_peca(peca, posicoes_menos3[indexMenos][0], posicoes_menos3[indexMenos][1])
@@ -2466,7 +2470,7 @@ def heuristica_bola5(pecas_bola, pecas_mais, pecas_menos, pecas_x):
 
             else:
 
-                bolas_antes_menos = conta_menos("0",2+menos_colocadas)
+                bolas_antes_menos = conta_menos_25("0",2+menos_colocadas)
 
                 if(bolas_antes_menos <= 14):
                     coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
@@ -2565,8 +2569,8 @@ def heuristica_mais9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
 
                 if(pecas_menos>2):
 
-                    mais_antes_menos3 = conta_menos("+",3+menos_ordem)
-                    x_antes_menos2 = conta_menos("*",2+menos_ordem)
+                    mais_antes_menos3 = conta_menos_25("+",3+menos_ordem)
+                    x_antes_menos2 = conta_menos_25("*",2+menos_ordem)
 
                     if(mais_antes_menos3 <= 7):
                         coloca_peca(peca, posicoes_menos3[indexMenos][0], posicoes_menos3[indexMenos][1])
@@ -2595,7 +2599,7 @@ def heuristica_mais9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
 
                 else:
 
-                    bolas_antes_menos = conta_menos("0",2+menos_ordem)
+                    bolas_antes_menos = conta_menos_25("0",2+menos_ordem)
 
                     if(bolas_antes_menos <= 14):
                         coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
@@ -2651,7 +2655,7 @@ def heuristica_mais9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
 
                 if(pecas_menos>2):
 
-                    bola_antes_menos3 = conta_menos("0",3+menos_ordem)
+                    bola_antes_menos3 = conta_menos_25("0",3+menos_ordem)
 
                     if(bola_antes_menos3 <= 7):
                         coloca_peca(peca, posicoes_menos3[indexMenos][0], posicoes_menos3[indexMenos][1])
@@ -2718,7 +2722,7 @@ def heuristica_mais9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
 
                 if(pecas_menos>2):
 
-                    bola_antes_menos3 = conta_menos("0",3+menos_ordem)
+                    bola_antes_menos3 = conta_menos_25("0",3+menos_ordem)
 
                     if(bola_antes_menos3 <= 7):
                         coloca_peca(peca, posicoes_menos3[indexMenos][0], posicoes_menos3[indexMenos][1])
@@ -2803,7 +2807,7 @@ def heuristica_mais9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
 
                 if(pecas_menos>2):
 
-                    mais_antes_menos3 = conta_menos("+",3+menos_ordem)
+                    mais_antes_menos3 = conta_menos_25("+",3+menos_ordem)
 
                     if(mais_antes_menos3 <= 7):
                         coloca_peca(peca, posicoes_menos3[indexMenos][0], posicoes_menos3[indexMenos][1])
@@ -2869,7 +2873,7 @@ def heuristica_mais9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
 
                 if(pecas_menos>2):
 
-                    mais_antes_menos3 = conta_menos("+",3+menos_ordem)
+                    mais_antes_menos3 = conta_menos_25("+",3+menos_ordem)
 
                     if(mais_antes_menos3 <= 8):
                         coloca_peca(peca, posicoes_menos3[indexMenos][0], posicoes_menos3[indexMenos][1])
@@ -2920,7 +2924,7 @@ def heuristica_x9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
     x_colocadas = 0
     mais_colocadas = 0
 
-    if(pecas_bola>=8 and pecas_mais>=5 and (conta_bola("*",8)<=6 and conta_mais("*",5)<=6)):
+    if(pecas_bola>=8 and pecas_mais>=5 and (conta_bola("*",8)<=6 and conta_mais_25("*",5)<=6)):
 
         posicoes_x9 = [(5,5),(4,2),(2,2),(2,4),(1,5),(5,1),(4,4),(1,1),(3,3)]
         posicoes_mais5 = [(5,4),(4,3),(4,5),(3,4),(4,4)]
@@ -2959,7 +2963,7 @@ def heuristica_x9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
 
                 if(pecas_menos>2):
 
-                    x_antes_menos3 = conta_menos("*",3+menos_ordem)
+                    x_antes_menos3 = conta_menos_25("*",3+menos_ordem)
 
                     if(x_antes_menos3 <= 5):
                         coloca_peca(peca, posicoes_menos3[indexMenos][0], posicoes_menos3[indexMenos][1])
@@ -3319,7 +3323,7 @@ matriz.imprime_matriz(matriz_jogo)
 ev3.speaker.beep()
 # leitura_objetos()
 print(pecas)
-larga_objeto()
+# larga_objeto()
 jogar()
 retira_pontos()
 print(pontos)
