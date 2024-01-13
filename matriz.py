@@ -10,19 +10,28 @@
     
 # Cria uma matriz vazia com tamanho 'tamanho'
 def cria_matriz(tamanho):
-    matriz = []  # Inicializa uma lista vazia para representar a matriz
+    # Inicializa uma lista vazia para representar a matriz
+    matriz = []  
     for i in range(tamanho):
-        matriz.append([])  # Adiciona uma lista vazia como linha da matriz
+        # Adiciona uma lista vazia como linha da matriz
+        matriz.append([])  
         for z in range(tamanho):
-            matriz[i].append(" ")  # Adiciona espaços em branco para cada célula da matriz
-    return matriz  # Retorna a matriz preenchida com espaços em branco
+            # Adiciona espaços em branco para cada célula da matriz
+            matriz[i].append(" ")  
+    # Retorna a matriz preenchida com espaços em branco
+    return matriz  
 
+# Cria uma matriz heurística vazia com tamanho 'tamanho'
 def cria_matriz_heuristica(tamanho):
-    matriz = []
+    # Inicializa uma lista vazia para representar a matriz
+    matriz = [] 
     for i in range(tamanho):
-        matriz.append([])
+        # Adiciona uma lista vazia como linha da matriz
+        matriz.append([]) 
         for z in range(tamanho):
-            matriz[i].append([])
+            # Adiciona uma lista vazia como célula/posição da matriz
+            matriz[i].append([]) 
+    # Retorna a matriz preenchida com listas vazias 
     return matriz
 
 # Imprime a matriz formatada
@@ -32,11 +41,14 @@ def imprime_matriz(matriz):
     
     # Loop para percorrer as linhas da matriz
     for i in range(len(matriz)):
-        linha = "|"  # Inicializa uma variável para representar uma linha da matriz com uma barra vertical no início
+        # Inicializa uma variável para representar uma linha da matriz com uma barra vertical no início
+        linha = "|"  
         # Loop para percorrer os elementos de cada linha da matriz
         for j in range(len(matriz[i])):
-            linha += " " + matriz[i][j] + " |"  # Adiciona cada elemento formatado à linha com barras verticais
-        print(linha)  # Imprime a linha formatada
+            # Adiciona cada elemento formatado à linha com barras verticais
+            linha += " " + matriz[i][j] + " |"  
+        # Imprime a linha formatada
+        print(linha)  
 
 # Insere um objeto em uma posição específica da matriz
 def inserir_objeto_matriz(objeto, linha, coluna, matriz):

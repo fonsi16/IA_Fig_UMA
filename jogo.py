@@ -33,7 +33,7 @@ OESTE = 2
 NORTE = 3
 ESTE = 4
 
-    #Sentido do robô (sendo que começa sempre virado para Sul)
+#Sentido do robô (sendo que começa sempre virado para Sul)
 sentido_robo = SUL 
 #Localização X do robô no tabuleiro
 robo_x = TAMANHO_AMBIENTE 
@@ -79,7 +79,31 @@ Configuração das pernas (
 '''
 pernas.settings(190, 100, 190, 100)
 
+#VARIÁVEIS PARA A HEURÍSTICA DE 25 PEÇAS
+#Variáveis para contagem das peças
+pecas_bola = 0
+pecas_menos = 0
+pecas_mais = 0
+pecas_x = 0
+
+# Posições das peças da bola de 4 e 8
+posicoes_bola4 = [(1,1),(1,2),(2,1),(2,2)]
+posicoes_bola8 = [(1,1),(1,2),(1,3),(2,1),(2,3),(3,1),(3,2),(3,3)]
+
+# Posições das peças  x
+posicoes_x9 = [(5,1),(5,5),(4,2),(4,4),(1,1),(1,5),(2,2),(2,4),(3,3)]
+posicoes_x5 = [(5,1),(5,3),(4,2),(3,1),(3,3)]
+
+# Posições das peças +
+posicoes_mais9 = [(1,3),(2,3),(3,1),(3,2),(3,4),(3,5),(5,3),(4,3),(3,3)]
+posicoes_mais5 = [(5,4),(4,3),(4,4),(4,5),(3,4)]
+
+# Posições das peças menos
+posicoes_menos3 = [(2,5),(2,3),(2,4)]
+posicoes_menos2 = [(2,5),(2,4)]
+
 #DEFINIÇÃO DE FUNÇÕES
+
 #Robô anda para a frente um quadrado
 def anda_frente():
     global robo_x, robo_y, sentido_robo
@@ -247,58 +271,6 @@ def leitura_objetos():
             #Indica que acabou o período
             ev3.speaker.beep()
 
-#Robô desloca-se para um sítio no tabuleiro (para meter a peça)
-def posicionar(linha, coluna): 
-    global robo_x, robo_y, matriz_jogo
-    #Descobre a melhor rota do sítio no tabuleiro até a localização do robô
-    caminho = melhor_rota(linha, coluna, [], [], 0)
-    #Se existe uma rota possível
-    if(caminho!=[]):
-        #Reverte a rota
-        caminho.reverse()
-
-        #Percorre a rota reversa assim indo da sua posição até ao sítio pertendido
-        for i in range(len(caminho)-1):
-            movimento(caminho[i][0], caminho[i][1], caminho[i+1][0], caminho[i+1][1])
-                
-        if (linha>robo_y):
-            muda_sentido(SUL)
-
-        #Se o proximo movimento do robô é ir para cima ele vai virar para norte
-        elif(linha<robo_y):
-            muda_sentido(NORTE)
-
-        #Se o proximo movimento do robô é ir para direita ele vai virar para este
-        elif(coluna>robo_x):
-            muda_sentido(ESTE)
-
-        #Se o proximo movimento do robô é ir para esquerda ele vai virar para oeste
-        elif(coluna<robo_x):
-            muda_sentido(OESTE)
-            
-        #Reverte a rota denovo assim voltando ao normal
-        caminho.reverse()
-        #Retorna a rota
-        return caminho, False
-    else:
-        for i in range(TAMANHO_AMBIENTE-coluna):
-            caminho.append([TAMANHO_AMBIENTE, TAMANHO_AMBIENTE-i])
-        for i in range (TAMANHO_AMBIENTE-linha):
-            caminho.append([TAMANHO_AMBIENTE-i-1, coluna+1])
-
-        for i in range(len(caminho)-1):
-            movimento(caminho[i][0], caminho[i][1], caminho[i+1][0], caminho[i+1][1])
-            if (i == TAMANHO_AMBIENTE - coluna - 2):
-                pernas.straight(DISTANCIA_ENTRE_QUADRADOS*0.75)
-            
-        muda_sentido(OESTE)
-        pernas.straight(DISTANCIA_ENTRE_QUADRADOS*0.75)
-        larga_objeto()
-        matriz.imprime_matriz(matriz_jogo)
-        
-        caminho.reverse()
-        return caminho, True
-   
 #Verifica se todos os espaços à volta de um sítio do tabuleiro são vazios
 def verifica_perimetro(linha, coluna):
     global matriz_jogo
@@ -358,133 +330,9 @@ def muda_sentido(sentido):
     
     #Muda o sentido do robô para o que acabou de mudar
     sentido_robo = sentido
-    
-#Volta para base percorrendo a rota
-def voltar (caminho, linhas):
-    if(linhas):
-        pernas.straight(-DISTANCIA_ENTRE_QUADRADOS*0.75)
-        muda_sentido(SUL)
-        
-    for i in range(len(caminho)-1):
-        movimento(caminho[i][0], caminho[i][1], caminho[i+1][0], caminho[i+1][1])
-    
-    muda_sentido(SUL)
-          
-def melhor_rota(linha, coluna, caminho, nao_ir, contador):
-    """Retorna um array com as coordenadas a partir da célula mais próxima à coordenada onde o robô deseja colocar a peça.
-    Esta é uma função recursiva, ou seja, será sempre chamada até alcançar a coordenada base do robô (6 por 6) 
-    ou se não conseguir retorna um array vazio.    
-
-    Args:
-        linha (int): linha da matriz.
-        coluna (int): coluna da matriz.
-        caminho (array): array com as coordenadas que o robô irá percorrerá.
-        nao_ir (array): array com as casas em que o robô não pode ir, pois são becos sem saída ou coordenadas já percorridas..
-        contador (int): contador que, ao chegar na primeira coordenada (da peça), incrementa se o número for igual às casas vazias ao redor, indicando que o robô não consegue chegar lá.
-
-    Returns:
-        caminho (array): array com as coordenadas até a casa do robô.
-            Exemplo: Se a peça será colocada na coordenada [1,1]:
-                caminho --> [[2, 1], [3, 1], [4, 1], [5, 1], [6, 1], [6, 2], [6, 3], [6, 4], [6, 5], [6, 6]]
-    """
-
-    #caso a linha e a coluna seja igual ao tamanho ambiente(onde o robo se encontra) quer dizer que achamos uma rota para chegar à peça 
-    if (linha == TAMANHO_AMBIENTE) and (coluna == TAMANHO_AMBIENTE):
-        return caminho
-        """ exemplo
-            |   |   |   |   |   |   |   |
-            |   |   |   |   |   |   |   |
-            |   |   |   |   |   |   |   |
-            |   |   |   |   |   |   |   |
-            |   |   |   |   |   |   |   |
-            |   |   |   |   |   |   |   |
-            |   |   |   |   |   |   | # |
-        """
-    
-    #caso esteja nas bordas horizontais e numa coluna antes da última
-    elif (linha == 0 and coluna < TAMANHO_AMBIENTE) or (linha == TAMANHO_AMBIENTE and coluna < TAMANHO_AMBIENTE) :
-        #irá adicionar ao caminha a coordena com linha igual à atual e proxima coluna ou seja aquela que está à direita
-        caminho.append([linha, coluna+1])
-        #chama a recursiva e verifica se chegou ou não à posição do robo
-        return melhor_rota(linha, coluna+1, caminho, nao_ir, contador)
-        """ exemplo
-            | # | # | # | # | # | # |   |
-            |   |   |   |   |   |   |   |
-            |   |   |   |   |   |   |   |
-            |   |   |   |   |   |   |   |
-            |   |   |   |   |   |   |   |
-            |   |   |   |   |   |   |   |
-            | # | # | # | # | # | # |   |
-        """
-    
-    #caso esteja nas bordas verticais e numa coluna antes da última
-    elif (linha < TAMANHO_AMBIENTE and coluna == TAMANHO_AMBIENTE) or (coluna == 0 and (linha > 0 and linha < TAMANHO_AMBIENTE)) :
-        #irá adicionar ao caminha a coordena com coluna igual à atual e proxima linha ou seja aquela que está a baixo
-        caminho.append([linha+1, coluna])
-         #chama a recursiva e verifica se chegou ou não à posição do robo
-        return melhor_rota(linha+1, coluna, caminho , nao_ir, contador)
-        """ exemplo
-            |   |   |   |   |   |   | # |
-            | # |   |   |   |   |   | # |
-            | # |   |   |   |   |   | # |
-            | # |   |   |   |   |   | # |
-            | # |   |   |   |   |   | # |
-            | # |   |   |   |   |   | # |
-            |   |   |   |   |   |   |   |
-        """
-    
-    #caso a linha e a coluna não se encontre numa borda
-    else:
-        #verifica se não existe coordenadas no caminho e se a coluna e a linha são as coordenadas da peça
-        if (len(caminho)==0 and [linha, coluna] in nao_ir):
-            contador+=1
-            #caso o contador seja igual aos espaços vazios que existem no perimetro da peça quer dizer que ele ja percorreu os espaços possíveis
-            if(contador==len(verifica_perimetro(nao_ir[0][0],nao_ir[0][1]))):
-                #o robo não consegue chegar lá então o caminho é vazio
-                return []
-        
-        #na primeira vez ele irá adicionar a coordenada da peça no array
-        #caso a coordena já exista no array não é necessário voltar a inseri-la 
-        if [linha, coluna] not in nao_ir:
-            nao_ir.append([linha, coluna])
-            
-        #criamos um array coordenadas que irá receber as coordenadas em cruz onde existem espaços vazios
-        coordenadas = verifica_perimetro(linha,coluna)
-        
-        #caso hajam coordenadas vazias à volta da peça
-        if coordenadas != []:
-            #iremos percorrer as coordenadas
-            for i in range(len(coordenadas)):
-                #caso a coordena não esteja no array nao_ir
-                if(coordenadas[i] not in nao_ir):
-                    #irá adcionar a coordenada ao caminho
-                    caminho.append([coordenadas[i][0], coordenadas[i][1]])
-                    #irá chamar a recursiva para verificar a coordenada que adicionou ao caminho
-                    return melhor_rota(coordenadas[i][0], coordenadas[i][1],
-                                caminho, nao_ir, contador)
-            
-            #caso tenha percorrido todas as coordenadas e nao tenha chamado a recursiva, ou seja entrou num beco sem saida
-            #elemina a ultima posição do array caminho
-            caminho.pop()
-            
-            #verifica se  tem coordenadas no array caminho
-            if(len(caminho)>0):
-                #chama a recursiva na ultima poscição do array caminho para verificar se ainda consegue chegar a uma borda
-                return melhor_rota(caminho[-1][0], caminho[-1][1],
-                                    caminho, nao_ir, contador)
-            
-            #caso tenha voltado ao início
-            else:
-                #chama a recursiva na poscição da peça para verificar se ainda consegue chegar a uma borda
-                return melhor_rota(nao_ir[0][0], nao_ir[0][1],
-                                    caminho, nao_ir, contador)
-        
-        #caso não hajam coordenadas vazias à volta da peça
-        else:
-            return []
 
 #Funcao que orienta o robo no sentido correto, quando se esta a mover
-#recebendo a linha e coluna que esta agora, e a proxima linha e coluna
+#Recebendo a linha e coluna que esta agora, e a proxima linha e coluna
 def movimento(linha_atual, coluna_atual, proxima_linha, proxima_coluna):
 
     #Se o proximo movimento do robô é ir para baixo ele vai virar para sul
@@ -507,62 +355,411 @@ def movimento(linha_atual, coluna_atual, proxima_linha, proxima_coluna):
         muda_sentido(OESTE)
         anda_frente()
 
-#Funcao para verificar o numero de pecas dessa peca que tem na matriz de jogo
+#Volta para base percorrendo a rota/caminho
+def voltar (caminho):
+        
+    for i in range(len(caminho)-1):
+        movimento(caminho[i][0], caminho[i][1], caminho[i+1][0], caminho[i+1][1])
+    
+    muda_sentido(SUL)
+
+#Funcao que devolve a melhor (primeira possível) rota/caminho para chegar a uma posição na matriz
+def melhor_rota(linha, coluna, caminho, nao_ir, contador):
+    """Retorna um array com as coordenadas a partir da célula mais próxima à coordenada onde o robô deseja colocar a peça.
+    Esta é uma função recursiva, ou seja, será sempre chamada até alcançar a coordenada base do robô (6 por 6) ou se não conseguir retorna um array vazio.    
+
+    Args:
+        linha (int): Linha da posição onde vai meter a peça na matriz
+        coluna (int): coluna da posição onde vai meter a peça na matriz
+        caminho (array): Array com as coordenadas que o robô irá percorrer (que será preenchido nesta função)
+        nao_ir (array): Array com as casas em que o robô não pode ir, pois são becos sem saída ou coordenadas já percorridas.
+        contador (int): Contador que, ao chegar na primeira coordenada (da peça), incrementa se o número for igual às casas vazias ao redor, indicando que o robô não consegue chegar lá.
+
+    Returns:
+        caminho (array): array com as coordenadas até a casa do robô.
+            Exemplo: Se a peça será colocada na coordenada [1,1]:
+                caminho --> [[2, 1], [3, 1], [4, 1], [5, 1], [6, 1], [6, 2], [6, 3], [6, 4], [6, 5], [6, 6]]
+    """
+
+    # Caso a linha e a coluna seja igual ao tamanho ambiente(onde o robo se encontra) quer dizer que achamos uma rota/caminho para chegar à peça 
+    if (linha == TAMANHO_AMBIENTE) and (coluna == TAMANHO_AMBIENTE):
+        return caminho
+        """ Exemplo:
+            |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   | # |
+        """
+    
+    # Caso esteja nas bordas horizontais e numa coluna antes da última
+    elif (linha == 0 and coluna < TAMANHO_AMBIENTE) or (linha == TAMANHO_AMBIENTE and coluna < TAMANHO_AMBIENTE) :
+        # Irá adicionar ao caminha a coordena com linha igual à atual e proxima coluna ou seja aquela que está à direita
+        caminho.append([linha, coluna+1])
+        # Chama a recursiva e verifica se chegou ou não à posição do robo
+        return melhor_rota(linha, coluna+1, caminho, nao_ir, contador)
+        """ Exemplo:
+            | # | # | # | # | # | # |   |
+            |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |
+            | # | # | # | # | # | # |   |
+        """
+    
+    # Caso esteja nas bordas verticais e numa coluna antes da última
+    elif (linha < TAMANHO_AMBIENTE and coluna == TAMANHO_AMBIENTE) or (coluna == 0 and (linha > 0 and linha < TAMANHO_AMBIENTE)) :
+        # Irá adicionar ao caminha a coordena com coluna igual à atual e proxima linha ou seja aquela que está a baixo
+        caminho.append([linha+1, coluna])
+        # Chama a recursiva e verifica se chegou ou não à posição do robo
+        return melhor_rota(linha+1, coluna, caminho , nao_ir, contador)
+    
+        """ Exemplo:
+            |   |   |   |   |   |   | # |
+            | # |   |   |   |   |   | # |
+            | # |   |   |   |   |   | # |
+            | # |   |   |   |   |   | # |
+            | # |   |   |   |   |   | # |
+            | # |   |   |   |   |   | # |
+            |   |   |   |   |   |   |   |
+        """
+    
+    # Caso a linha e a coluna não se encontre numa borda
+    else:
+        # Verifica se não existe coordenadas no caminho e se a coluna e a linha são as coordenadas da peça
+        if (len(caminho)==0 and [linha, coluna] in nao_ir):
+            contador+=1
+            # Caso o contador seja igual aos espaços vazios que existem no perimetro da peça quer dizer que ele ja percorreu os espaços possíveis
+            if(contador==len(verifica_perimetro(nao_ir[0][0],nao_ir[0][1]))):
+                # O robo não consegue chegar lá então o caminho é vazio
+                return []
+        
+        # Na primeira vez ele irá adicionar a coordenada da peça no array
+        # Caso a coordena já exista no array não é necessário voltar a inseri-la 
+        if [linha, coluna] not in nao_ir:
+            nao_ir.append([linha, coluna])
+            
+        # Criamos um array coordenadas que irá receber as coordenadas em cruz onde existem espaços vazios
+        coordenadas = verifica_perimetro(linha,coluna)
+        
+        # Caso hajam coordenadas vazias à volta da peça
+        if coordenadas != []:
+            # Iremos percorrer as coordenadas
+            for i in range(len(coordenadas)):
+                # Caso a coordena não esteja no array nao_ir
+                if(coordenadas[i] not in nao_ir):
+                    # Irá adcionar a coordenada ao caminho
+                    caminho.append([coordenadas[i][0], coordenadas[i][1]])
+                    # Irá chamar a recursiva para verificar a coordenada que adicionou ao caminho
+                    return melhor_rota(coordenadas[i][0], coordenadas[i][1],
+                                caminho, nao_ir, contador)
+            
+            # Caso tenha percorrido todas as coordenadas e nao tenha chamado a recursiva, ou seja entrou num beco sem saida
+            # Elimina a ultima posição do array caminho
+            caminho.pop()
+            
+            # Verifica se tem coordenadas no array caminho
+            if(len(caminho)>0):
+                # Chama a recursiva na ultima poscição do array caminho para verificar se ainda consegue chegar a uma borda
+                return melhor_rota(caminho[-1][0], caminho[-1][1],
+                                    caminho, nao_ir, contador)
+            
+            # Caso tenha voltado ao início
+            else:
+                # Chama a recursiva na poscição da peça para verificar se ainda consegue chegar a uma borda
+                return melhor_rota(nao_ir[0][0], nao_ir[0][1],
+                                    caminho, nao_ir, contador)
+        
+        # Caso não hajam coordenadas vazias à volta da peça
+        else:
+            return []
+
+#Robô desloca-se para uma posição no tabuleiro (para meter a peça)
+def posicionar(linha, coluna): 
+    global robo_x, robo_y, matriz_jogo
+    # Descobre a melhor rota/caminho do sítio no tabuleiro até a localização do robô
+    caminho = melhor_rota(linha, coluna, [], [], 0)
+    # Se existe uma rota/caminho possível
+    if(caminho!=[]):
+        # Reverte a rota/caminho
+        caminho.reverse()
+
+        # Percorre a rota/caminho reversa assim indo da sua posição até ao sítio pretendido
+        for i in range(len(caminho)-1):
+            movimento(caminho[i][0], caminho[i][1], caminho[i+1][0], caminho[i+1][1])
+                
+        # Se o robô não está de frente para o sítio onde vai meter a peça, muda o seu sentido
+        if (linha>robo_y):
+            muda_sentido(SUL)
+        elif(linha<robo_y):
+            muda_sentido(NORTE)
+        elif(coluna>robo_x):
+            muda_sentido(ESTE)
+        elif(coluna<robo_x):
+            muda_sentido(OESTE)
+            
+        # Reverte a rota/caminho denovo assim voltando ao normal
+        caminho.reverse()
+        # Retorna a rota/caminho
+        return caminho, False
+    # Caso não exista uma rota/caminho possível irá pelas linhas do tabuleiro
+    else:
+        # Cria um array caminho que irá receber as coordenadas que o robô irá percorrer
+        # Percorre as colunas do tabuleiro até a anterior à coluna onde vai meter a peça
+        for i in range(TAMANHO_AMBIENTE-coluna):
+            caminho.append([TAMANHO_AMBIENTE, TAMANHO_AMBIENTE-i])
+        # Percorre as linhas do tabuleiro até à linha onde vai meter a peça
+        for i in range (TAMANHO_AMBIENTE-linha):
+            caminho.append([TAMANHO_AMBIENTE-i-1, coluna+1])
+
+        # Percorre a rota/caminho assim indo da sua posição até ao sítio pretendido
+        for i in range(len(caminho)-1):
+            movimento(caminho[i][0], caminho[i][1], caminho[i+1][0], caminho[i+1][1])
+            # Depois de percorrer o tabuleiro até á coluna antes da de onde vai meter a peça anda meio quadrado para a frente de modo a se posicionar na linha
+            if (i == TAMANHO_AMBIENTE - coluna - 2):
+                pernas.straight(DISTANCIA_ENTRE_QUADRADOS*0.75)
+            
+        # Muda o seu sentido para o sítio onde vai meter a peça
+        muda_sentido(OESTE)
+        # Anda meio quadrado para a frente de modo a se posicionar na posição para meter a peça
+        pernas.straight(DISTANCIA_ENTRE_QUADRADOS*0.75)
+        # Larga a peça
+        larga_objeto()
+
+        # Reverte a rota/caminho denovo assim ficando da posição ate a localização do robô
+        caminho.reverse()
+        return caminho, True
+
+# Função para limpar as peças nas coordenadas especificadas
+def limpa_pecas(coordenadas_limpar):
+    global matriz_jogo
+    
+    # Verifica se há coordenadas para limpar
+    if len(coordenadas_limpar) > 0:
+        # Percorre as coordenadas e limpa as peças na matriz de jogo
+        for i in range(len(coordenadas_limpar)):
+            matriz_jogo[coordenadas_limpar[i][0]][coordenadas_limpar[i][1]] = " "   
+
+# Função para verificar o número de peças dessa peca que tem na matriz de jogo
 def numero_pecas(peca):
     global matriz_jogo
 
-    #Variavel para adicionar quantas pecas tem 
+    # Variável para contar quantas peças existem
     contador = 0
     for i in range(len(matriz_jogo)):
         for j in range(len(matriz_jogo[i])):
-            if matriz_jogo[i][j] == peca :
-
-                #Aumenta o contador
+            if matriz_jogo[i][j] == peca:
+                # Aumenta o contador
                 contador += 1
+    # Retorna o contador
     return contador
 
-#Funcao para colocar a peca que recebeu na matriz
-def coloca_peca(peca, x, y):
+# Funcao para verificar se fez a figura da bola
+def verifica_bola():
+    global matriz_jogo, pontos
+    
+    # Percorre a matriz por linha
+    for i in range(1, TAMANHO_MATRIZ):
+        
+        # Verifica se na linha existe uma bola
+        if "0" in matriz_jogo[i]:
+            
+            # Percorre as colunas
+            for j in range(1, TAMANHO_AMBIENTE):
+                
+                # Verifica se na posição atual, à direita e em baixo existe uma bola
+                if (matriz_jogo[i][j] == "0" and matriz_jogo[i+1][j] == "0" and matriz_jogo[i][j+1] == "0"):
+                    
+                    # Variaveis locais que irão ajudar (numa proxima coluna estas variaveis voltam a ficar a zero)
+                    bolas_de_seguida = 0
+                    contador_horizontal = 0
+                    contador_vertical = 0
+                    seguinte = True
+                    # Array para guardar as coordenadas que irá limpar
+                    coordenadas_limpar = []
+                    
+                    # Adiciona a coordenada atual no array para limpar
+                    coordenadas_limpar.append([i, j])
+                    
+                    # Verifica se nas proximas colunas quantos bolas de seguida existem
+                    for proxima_coluna in range(j+1, TAMANHO_AMBIENTE):
+                        if (matriz_jogo[i][proxima_coluna] == "0" and seguinte):
+                            contador_horizontal += 1
+                        else:
+                            seguinte = False
+                    
+                    seguinte = True
+                    
+                    # Verifica se nas proximas linhas quantas bolas de seguida existem
+                    for proxima_linha in range(i+1, TAMANHO_AMBIENTE):
+                        if (matriz_jogo[proxima_linha][j] == "0" and seguinte):
+                            contador_vertical += 1
+                        else:
+                            seguinte = False
+                     
+                    
+                    # Se uma das variaveis é menor do que a outra faz sentido fazer a menor porque a maior já náo será possível
+                            
+                    """ Exemplo:
+                        |   |   |   |   |   |   |   |
+                        |   | 0 | 0 | 0 | 0 | 0 |   |
+                        |   | 0 |   |   |   |   |   |
+                        |   | 0 |   |   |   |   |   |
+                        |   |   |   |   |   |   |   |
+                        |   |   |   |   |   |   |   |
+                        |   |   |   |   |   |   |   |
+                        Fazemos para a variavel vertical pois é a menor só sera possivel fazer no maximo uma bola de 8 peças
+                    """
 
+                    # Comparação entre as variaveis  
+                    if (contador_vertical < contador_horizontal):
+                        bolas_de_seguida = contador_vertical
+                    else:
+                        bolas_de_seguida = contador_horizontal
+                    
+                    # Adiciona ao array para limpar as coordenadas que percorremos para baixo e para a direita onde contêm uma bola
+                    for adicona_lixo in range(1, bolas_de_seguida+1):
+                        coordenadas_limpar.append([i, j+adicona_lixo])
+                        coordenadas_limpar.append([i+adicona_lixo, j])
+                        
+                    # Caso a tenha mais que uma bola de seguida para baixo e para a direita
+                    while (bolas_de_seguida > 1):
+                        seguinte = True
+                        
+                        # Verifica se na ultima linha de uma possivel bola existe o resto das bolas para formar a figura
+                        for linha_baixo in range(j+1, j+bolas_de_seguida+1):
+                            if not (matriz_jogo[i+bolas_de_seguida][linha_baixo] == "0" and seguinte):
+                                seguinte = False
+                            else:
+                                coordenadas_limpar.append([i+bolas_de_seguida, linha_baixo])
+                        
+                        # Caso a ultima linha nao seja tudo bola verifica para uma bola menor diminuido a variavel
+                        if not seguinte:
+                            bolas_de_seguida -= 1   
+                            
+                        # Caso tenha passa para a a linha à direita
+                        else:
+                            
+                            # Verifica se na ultima linha de uma possivel bola existe o resto das bolas para formar a figura
+                            for linha_direita in range(i+1, i+bolas_de_seguida+1):
+                                if not (matriz_jogo[linha_direita][j+bolas_de_seguida] == "0" and seguinte):
+                                    seguinte = False
+                                else:
+                                    coordenadas_limpar.append([linha_direita, j+bolas_de_seguida])
+                                    
+                            # Caso a ultima linha nao seja tudo bola verifica para uma bola menor diminuido a variavel
+                            if not seguinte:
+                                bolas_de_seguida -= 1
+
+                            # Caso verifique se que é uma bola adiciona os pontos e limpa as coordenadas e acaba a função
+                            else:
+                                limpa_pecas(coordenadas_limpar)
+                                pontos += 2**(len(coordenadas_limpar))
+                                ev3.speaker.say("I Did a Ball")
+                                ev3.speaker.say(str(2**(len(coordenadas_limpar))))
+                                return 0
+                    
+                    # Caso seja a menor bola 2 por 2
+                    if (bolas_de_seguida == 1 and matriz_jogo[i+1][j+1] == "0"):
+                        coordenadas_limpar.append([i+1, j+1])
+                        limpa_pecas(coordenadas_limpar)
+                        pontos += 2**(len(coordenadas_limpar))
+                        ev3.speaker.say("I Did a Ball")
+                        ev3.speaker.say(str(2**(len(coordenadas_limpar))))
+                        return 0
+
+
+#FIQUEI AQUI
+
+
+def verifica_x(linha, coluna):
+    global matriz_jogo, pontos
+
+    #Se houver um x na coluna à esquerda e linha de cima, E na linha de baixo e à direita,
+    #E na linha de baixo e à esquerda, E na linha de cima e à direita 
+    if (matriz_jogo[linha-1][coluna-1] == "*" and
+        matriz_jogo[linha+1][coluna+1] == "*" and 
+        matriz_jogo[linha+1][coluna-1] == "*" and 
+        matriz_jogo[linha-1][coluna+1] == "*"):
+        
+        #Vai substituir essas posicoes de pecas e a do meio da figura por " " 
+        matriz_jogo[linha-1][coluna-1] = " "
+        matriz_jogo[linha+1][coluna+1] = " "
+        matriz_jogo[linha+1][coluna-1] = " "
+        matriz_jogo[linha-1][coluna+1] = " "
+        matriz_jogo[linha][coluna] = " "
+        
+        #Vai dizer a figura que fez e os pontos dessa figura e adicionar esses pontos ao total de pontos
+        ev3.speaker.say("Did a X")
+        ev3.speaker.say(str(2**5))
+        pontos += 2**5
+        return True
+    return False
+ 
+ #coordenada para ver se tem um X no 3x3 dentro de 5x5
+
+def coordenadas_perimentros_vezes(linha, coluna):
     global matriz_jogo
 
-    #Recebe a coordenada onde pode colocar a peca
-    coordenada = [x, y]
-    
-    #Se recebeu uma coordenada
-    if coordenada is not None:
+    #Lista onde de posicoes onde tem de ter x para fazer a figura
+    coordenadas=[[linha+1,coluna+1],[linha+1, coluna-1], [linha-1, coluna+1], [linha-1, coluna-1]]
 
-        #adiciona às variaveis os valores dessa coordenada 
-        x = coordenada[0]
-        y = coordenada[1]
+    #Lista auxiliar para guardar as coordenadas das pecas x que tem na matriz
+    coordenadas_aux=[]
+
+    #Vai percorrer a lista de coordenadas
+    for i in range(len(coordenadas)):
         
-        #Vai agarrar na proxima peca
-        agarra_objeto()
+        #coordenadas[i][0] pode ser linha+1 ou linha-1
+        #coordenadas[i][1] pode ser coluna+1 ou coluna-1 
+        #Assim se na matriz[linha+/-1][coluna+/-1] existe x, e essas posicoes estao dentro da matriz de jogo
+        #adiciona à lista de coordenadas auxiliares
+        if (matriz_jogo[coordenadas[i][0]][coordenadas[i][1]]=="*" and
+            (coordenadas[i][0]>1 and coordenadas[i][0]<5) and
+            (coordenadas[i][1]>1 and coordenadas[i][1]<5)):
+            coordenadas_aux.append(coordenadas[i])
+    
+    return coordenadas_aux
+
+#coordenada para ver se tem + no 3x3 dentro do 5x5
+def coordenadas_perimentros_mais(linha, coluna):
+    global matriz_jogo
+    # coordenadas=[[linha, coluna]]
+    coordenadas=[[linha+1,coluna], [linha-1, coluna], [linha,coluna-1], [linha,coluna+1]]
+    coordenadas_aux=[]
+    for i in range(len(coordenadas)):
+        if (matriz_jogo[coordenadas[i][0]][coordenadas[i][1]]=="+" and
+            (coordenadas[i][0]>1 and coordenadas[i][0]<5) and
+            (coordenadas[i][1]>1 and coordenadas[i][1]<5)):
+            coordenadas_aux.append(coordenadas[i])
+    
+    return coordenadas_aux
+
+def verifica_mais(linha, coluna):
+    global matriz_jogo, pontos
+
+    #Aqui verifica se tem um + em cima, em baixo, à direita e à esquerda do ultimo + que colocou
+    if (matriz_jogo[linha-1][coluna] == "+" and
+        matriz_jogo[linha+1][coluna] == "+" and 
+        matriz_jogo[linha][coluna+1] == "+" and 
+        matriz_jogo[linha][coluna-1] == "+"):
         
-        #Variavel que guarda as coordenadas necessarias para voltar
-        volta, linhas = posicionar(x,y)
+        #Se a condicao se se verificar vai mudar essas pecas para " " porque fez a figura
+        matriz_jogo[linha-1][coluna] = " "
+        matriz_jogo[linha+1][coluna] = " "
+        matriz_jogo[linha][coluna+1] = " "
+        matriz_jogo[linha][coluna-1] = " "
+        matriz_jogo[linha][coluna] = " "
         
-        #Se não consegue voltar quer dizer que não pode por lá a peca colocando um ! nesse lugar
-       
-         
-         #se consegue por a peca nesse lugar vai colocar a peca e voltar para a casa inicial
-         #tirando a peca da lista de pecas e verificar se fez uma figura depois de colocar essa peca
-         #e permite visualizacao no terminal do que o robô fez   
-         
-        if linhas:
-            matriz.inserir_objeto_matriz(peca,x,y,matriz_jogo)
-            voltar(volta, linhas)
-            verifica_peca(peca,x,y)
-            matriz.imprime_matriz(matriz_jogo)
-        else:
-            pernas.straight(DISTANCIA_ENTRE_QUADRADOS*0.75)
-            larga_objeto()
-            pernas.straight(-DISTANCIA_ENTRE_QUADRADOS*0.75)
-            matriz.inserir_objeto_matriz(peca,x,y,matriz_jogo)
-            matriz.imprime_matriz(matriz_jogo)
-            voltar(volta, linhas)
-            verifica_peca(peca,x,y)
-            matriz.imprime_matriz(matriz_jogo)
+        #Diz que fez o mais e os pontos, e adiciona à variavel de pontos finais esses mesmos pontos que fez agora
+        ev3.speaker.say("Did a plus")
+        ev3.speaker.say(str(2**5))
+        pontos += 2**5
+        return True
+    return False
 
 #Funcao chamada quando ele coloca uma peca na matriz de jogo
 def verifica_peca(peca, linha, coluna):
@@ -665,301 +862,52 @@ def verifica_peca(peca, linha, coluna):
                 
         else: 
             verifica_bola()     
-#funcao para verificar se fez O
-def verifica_bola():
-    global matriz_jogo, pontos
-    
-    #Percorre a matriz por linha
-    for i in range(1,TAMANHO_MATRIZ):
-        
-        #Verifica se na linha existe uma bola
-        if "0" in matriz_jogo[i]:
-            
-            #Percorre as colunas
-            for j in range(1, TAMANHO_AMBIENTE):
-                
-                #Verifica se na posição atual, à direita e em baixo existe uma bola
-                if(matriz_jogo[i][j]=="0" and matriz_jogo[i+1][j]=="0" and matriz_jogo[i][j+1]=="0"):
-                    
-                    #Variaveis locais que irão ajudar (numa proxima coluna estas variaveis voltam a ficar a zero)
-                    bolas_de_seguida=0
-                    contador_horizontal=0
-                    contador_vertical=0
-                    seguinte=True
-                    coordenadas_limpar=[]
-                    
-                    #Adiciona a coordenada atual 
-                    coordenadas_limpar.append([i,j])
-                    
-                    #Verifica se nas proximas colunas quantos bolas de seguida existem
-                    for proxima_coluna in range(j+1,TAMANHO_AMBIENTE):
-                        if(matriz_jogo[i][proxima_coluna]=="0" and seguinte):
-                            contador_horizontal+=1
-                        else:
-                            seguinte=False
-                    
-                    seguinte = True
-                    
-                    #Verifica se nas proximas linhas quantos bolas de seguida existem
-                    for proxima_linha in range(i+1,TAMANHO_AMBIENTE):
-                        if(matriz_jogo[proxima_linha][j]=="0" and seguinte):
-                            contador_vertical+=1
-                        else:
-                            seguinte=False
-                     
-                    
-                    #Se uma das variaveis é menor do que a outra
-                    #faz sentido fazer a menor porque a maior já náo será possível
-                          
-                    if(contador_vertical<contador_horizontal):
-                        bolas_de_seguida=contador_vertical
-                    else:
-                        bolas_de_seguida=contador_horizontal
-                    
-                    #Adiciona ao array para limpar as
-                    #coordenadas que percorremos para baixo e 
-                    #para a direita onde contêm uma bola
-                    
-                    for adicona_lixo in range(1,bolas_de_seguida+1):
-                        coordenadas_limpar.append([i,j+adicona_lixo])
-                        coordenadas_limpar.append([i+adicona_lixo,j])
-                        
-                    #Caso a tenha mais que uma bola de seguida para baixo e para a direita
-                    while (bolas_de_seguida>1):
-                        seguinte=True
-                        
-                        #Verifica se na ultima linha de uma possivel bola existe o resto das 
-                        #bolas para formar a figura
-                        
-                        for linha_baixo in range(j+1,j+bolas_de_seguida+1):
-                            if not (matriz_jogo[i+bolas_de_seguida][linha_baixo] == "0" and seguinte):
-                                seguinte=False
-                            else:
-                                coordenadas_limpar.append([i+bolas_de_seguida,linha_baixo])
-                        
-                        #Caso a ultima linha nao seja tudo bola verifica 
-                        #para uma vola menor diminuido a variavel
-                        
-                        if not seguinte:
-                            bolas_de_seguida-=1
-                            
-                            
-                            #Caso tenha passa para a a linha à direita
-                            
-                        else:
-                            
-                            #Verifica se na ultima linha de uma possivel bola existe o resto das 
-                            #bolas para formar a figura
-                            
-                            for linha_direita in range(i+1, i+bolas_de_seguida+1):
-                                if not (matriz_jogo[linha_direita][j+bolas_de_seguida] == "0" and seguinte):
-                                    seguinte=False
-                                else:
-                                    coordenadas_limpar.append([linha_direita, j+bolas_de_seguida])
-                                    
-                            #Mesma coisa de cima 
 
-                            if not seguinte:
-                                bolas_de_seguida-=1
-                                
-                                #Caso verifique se que é uma bola adiciona
-                                #os pontos e limpa as coordenadas e acaba a função
+#Funcao para colocar a peca que recebeu na matriz
+def coloca_peca(peca, x, y):
 
-                            else:
-                                limpa_pecas(coordenadas_limpar)
-                                pontos += 2**(len(coordenadas_limpar))
-                                ev3.speaker.say("I Did a Ball")
-                                ev3.speaker.say(str(2**(len(coordenadas_limpar))))
-                                return 0
-                    
-                    #Caso seja a menor bola 2 por 2
-
-                    if(bolas_de_seguida==1 and matriz_jogo[i+1][j+1]=="0"):
-                        coordenadas_limpar.append([i+1,j+1])
-                        limpa_pecas(coordenadas_limpar)
-                        pontos += 2**(len(coordenadas_limpar))
-                        ev3.speaker.say("I Did a Ball")
-                        ev3.speaker.say(str(2**(len(coordenadas_limpar))))
-                        return 0
-
-def verifica_x(linha, coluna):
-    global matriz_jogo, pontos
-
-    #Se houver um x na coluna à esquerda e linha de cima, E na linha de baixo e à direita,
-    #E na linha de baixo e à esquerda, E na linha de cima e à direita 
-    if (matriz_jogo[linha-1][coluna-1] == "*" and
-        matriz_jogo[linha+1][coluna+1] == "*" and 
-        matriz_jogo[linha+1][coluna-1] == "*" and 
-        matriz_jogo[linha-1][coluna+1] == "*"):
-        
-        #Vai substituir essas posicoes de pecas e a do meio da figura por " " 
-        matriz_jogo[linha-1][coluna-1] = " "
-        matriz_jogo[linha+1][coluna+1] = " "
-        matriz_jogo[linha+1][coluna-1] = " "
-        matriz_jogo[linha-1][coluna+1] = " "
-        matriz_jogo[linha][coluna] = " "
-        
-        #Vai dizer a figura que fez e os pontos dessa figura e adicionar esses pontos ao total de pontos
-        ev3.speaker.say("Did a X")
-        ev3.speaker.say(str(2**5))
-        pontos += 2**5
-        return True
-    return False
- 
- #coordenada para ver se tem um X no 3x3 dentro de 5x5
-
-def coordenadas_perimentros_vezes(linha, coluna):
     global matriz_jogo
 
-    #Lista onde de posicoes onde tem de ter x para fazer a figura
-    coordenadas=[[linha+1,coluna+1],[linha+1, coluna-1], [linha-1, coluna+1], [linha-1, coluna-1]]
+    #Recebe a coordenada onde pode colocar a peca
+    coordenada = [x, y]
+    
+    #Se recebeu uma coordenada
+    if coordenada is not None:
 
-    #Lista auxiliar para guardar as coordenadas das pecas x que tem na matriz
-    coordenadas_aux=[]
-
-    #Vai percorrer a lista de coordenadas
-    for i in range(len(coordenadas)):
+        #adiciona às variaveis os valores dessa coordenada 
+        x = coordenada[0]
+        y = coordenada[1]
         
-        #coordenadas[i][0] pode ser linha+1 ou linha-1
-        #coordenadas[i][1] pode ser coluna+1 ou coluna-1 
-        #Assim se na matriz[linha+/-1][coluna+/-1] existe x, e essas posicoes estao dentro da matriz de jogo
-        #adiciona à lista de coordenadas auxiliares
-        if (matriz_jogo[coordenadas[i][0]][coordenadas[i][1]]=="*" and
-            (coordenadas[i][0]>1 and coordenadas[i][0]<5) and
-            (coordenadas[i][1]>1 and coordenadas[i][1]<5)):
-            coordenadas_aux.append(coordenadas[i])
-    
-    return coordenadas_aux
-
-#coordenada para ver se tem + no 3x3 dentro do 5x5
-def coordenadas_perimentros_mais(linha, coluna):
-    global matriz_jogo
-    # coordenadas=[[linha, coluna]]
-    coordenadas=[[linha+1,coluna], [linha-1, coluna], [linha,coluna-1], [linha,coluna+1]]
-    coordenadas_aux=[]
-    for i in range(len(coordenadas)):
-        if (matriz_jogo[coordenadas[i][0]][coordenadas[i][1]]=="+" and
-            (coordenadas[i][0]>1 and coordenadas[i][0]<5) and
-            (coordenadas[i][1]>1 and coordenadas[i][1]<5)):
-            coordenadas_aux.append(coordenadas[i])
-    
-    return coordenadas_aux
-
-def verifica_mais(linha, coluna):
-    global matriz_jogo, pontos
-
-    #Aqui verifica se tem um + em cima, em baixo, à direita e à esquerda do ultimo + que colocou
-    if (matriz_jogo[linha-1][coluna] == "+" and
-        matriz_jogo[linha+1][coluna] == "+" and 
-        matriz_jogo[linha][coluna+1] == "+" and 
-        matriz_jogo[linha][coluna-1] == "+"):
+        #Vai agarrar na proxima peca
+        agarra_objeto()
         
-        #Se a condicao se se verificar vai mudar essas pecas para " " porque fez a figura
-        matriz_jogo[linha-1][coluna] = " "
-        matriz_jogo[linha+1][coluna] = " "
-        matriz_jogo[linha][coluna+1] = " "
-        matriz_jogo[linha][coluna-1] = " "
-        matriz_jogo[linha][coluna] = " "
-        
-        #Diz que fez o mais e os pontos, e adiciona à variavel de pontos finais esses mesmos pontos que fez agora
-        ev3.speaker.say("Did a plus")
-        ev3.speaker.say(str(2**5))
-        pontos += 2**5
-        return True
-    return False
-
-def limpa_pecas(coordenadas_limpar):
-    global matriz_jogo
-    if(len(coordenadas_limpar)>0):
-        for i in range(len(coordenadas_limpar)):
-            matriz_jogo[coordenadas_limpar[i][0]][coordenadas_limpar[i][1]] = " "   
-
-#Esta funcaoo vai percorrer o array da matriz de jogo e se tiver pecas no tabuleiro e no array
-#de pecas vai fazer os calculos para retirar os pontos 
-def retira_pontos():
-    global pontos, matriz_jogo, pecas
-
-    #Variavel para contar o numero de pecas
-    contador = 0
-    for i in range(len(matriz_jogo)):
-        for j in range(len(matriz_jogo[i])):
-            
-            #Se naquela coordenada houver algo diferente de " " e "!" que nao sao pecas vai adicionar ao contador
-            if (matriz_jogo[i][j]!=" ") and matriz_jogo[i][j]!="!":
-                contador += 1
-
-    #Percorre o array de pecas que sobraram e adiciona ao contador
-    # for i in range(len(pecas)):
-    #     if pecas[i] != " ":
-    #         contador += 1
-
-    #Verifica se a variavel que conta as pecas e maior que zero
-    if contador > 0:
-
-        #Para o numero de pontos final nao ficar negativo, fica a zero 
-        if(pontos - 2**contador<=0):
-            pontos=0
-        else:   
-            pontos -= 2**contador   
-
-#Funcao que inicia o jogo, percorrendo as pecas do array e colocando-as na maatriz de jogo
-def jogar():
-    global matriz_jogo, matriz_heuristica, pecas, pontos
-    # melhor_escolha()
-    pecas_aux=pecas.copy()
-    ordem=posicao_pecas()
-    print(ordem)
-    pecas=pecas_aux
-    conta_bolas=0
-    conta_mais=0
-    conta_vezes=0
-    conta_menos=0
-    
-    for q in range(len(ordem)):
-        pontos+=2**ordem[q][0]
-    
-    for i in range(len(pecas)):
-        tipo=pecas[i]
-        if len(ordem)>0:
-            if tipo=="0":
-                conta_bolas+=1
-            elif tipo=="+":
-                conta_mais+=1
-            elif tipo=="*":
-                conta_vezes+=1
-            else:
-                conta_menos+=1
-            for z in range(len(ordem)):
-                if tipo==ordem[z][1]:
-                    if tipo=="0":
-                        coordenadas=procura_coordenada(ordem[z], conta_bolas)
-                        coloca_peca(pecas[i],coordenadas[0],coordenadas[1])
-                        if conta_bolas==ordem[z][0]:
-                            conta_bolas=0
-                            ordem.pop(z)
-                    elif tipo=="+":
-                        coordenadas=procura_coordenada_mais_e_vezes(ordem[z], conta_mais)
-                        coloca_peca(pecas[i],coordenadas[0],coordenadas[1])
-                        if conta_mais==ordem[z][0]:
-                            conta_mais=0
-                            ordem.pop(z)
-                    elif tipo=="*":
-                        coordenadas=procura_coordenada_mais_e_vezes(ordem[z], conta_vezes)
-                        coloca_peca(pecas[i],coordenadas[0],coordenadas[1])
-                        if conta_vezes==ordem[z][0]:
-                            conta_vezes=0
-                            ordem.pop(z)
-                    else:
-                        coordenadas=procura_coordenada_menos(ordem[z], conta_menos, ordem[z][0])
-                        coloca_peca(pecas[i],coordenadas[0],coordenadas[1])
-                        if conta_menos==ordem[z][0]:
-                            conta_menos=0
-                            ordem.pop(z)
-                            
-                    break
+        #Variavel que guarda as coordenadas/array necessarias para voltar e se foi por linhas meter a peça
+        volta, linhas = posicionar(x,y)
+         
+        #Se consegue por a peca nesse lugar vai colocar a peca e voltar para a casa inicial
+        #Verificar se fez uma figura depois de colocar essa peca
+         
+        if linhas:
+            # Se o linha é verdadeiro, significa que teve que ir pelas linhas para meter a peça pois a peça nao tinha um caminho possivel
+            matriz.inserir_objeto_matriz(peca,x,y,matriz_jogo)
+            #Voltar para a casa inicial
+            voltar(volta)
+            #Verificar se fez uma figura depois de colocar essa peca
+            verifica_peca(peca,x,y)
+            matriz.imprime_matriz(matriz_jogo)
         else:
-            coordenadas=procura_coordenada_vazia()
-            coloca_peca(pecas[i],coordenadas[0],coordenadas[1])
+            #Pequenos ajustes para meter a peca
+            pernas.straight(DISTANCIA_ENTRE_QUADRADOS*0.75)
+            larga_objeto()
+            pernas.straight(-DISTANCIA_ENTRE_QUADRADOS*0.75)
+            matriz.inserir_objeto_matriz(peca,x,y,matriz_jogo)
+            matriz.imprime_matriz(matriz_jogo)
+            #Voltar para a casa inicial
+            voltar(volta)
+            pernas.straight(DISTANCIA_ENTRE_QUADRADOS*0.75)
+            #Verificar se fez uma figura depois de colocar essa peca
+            verifica_peca(peca,x,y)
+            matriz.imprime_matriz(matriz_jogo)
 
 def procura_coordenada_vazia():
     global matriz_jogo
@@ -1617,61 +1565,1684 @@ def posicao_pecas():
 
     return ordem
 
+#Funções para Heuristica de menos de 25 peças
+
+def numero_pecas_dadas(peca):
+    global pecas
+    contador = 0
+
+    if len(pecas) <= 25:
+        for peca_i in pecas:
+            if peca_i == peca:
+                contador += 1
+    else:
+        for i in range(len(pecas)):
+            if pecas[i] == peca:
+                contador += 1
+                
+    return contador
+
+def conta_x(peca, pecas_figura):
+    global pecas
+    contador = 0
+    contador_x = 0
+
+    if len(pecas) <= 25:
+        for peca_i in pecas:
+            if peca_i == peca:
+                contador += 1
+            if peca_i == "*":
+                contador_x += 1
+            if contador_x == pecas_figura:
+                break
+    else:
+        for i in range(len(pecas)):
+            if pecas[i] == peca:
+                contador += 1
+            if pecas[i] == "*":
+                contador_x += 1
+            if contador_x == pecas_figura:
+                break
+                    
+    return contador
+
+def conta_mais(peca, pecas_figura):
+    global pecas
+    contador = 0
+    contador_x = 0
+
+    if len(pecas) <= 25:
+        for peca_i in pecas:
+            if peca_i == peca:
+                contador += 1
+            if peca_i == "+":
+                contador_x += 1
+            if contador_x == pecas_figura:
+                break
+    else:
+        for i in range(len(pecas)):
+            if pecas[i] == peca:
+                contador += 1
+            if pecas[i] == "+":
+                contador_x += 1
+            if contador_x == pecas_figura:
+                break
+                    
+    return contador
+
+def conta_menos (peca, pecas_figura):
+    global pecas
+    contador = 0
+    contador_menos = 0
+
+    if len(pecas) <= 25:
+        for peca_i in pecas:
+            if peca_i == peca:
+                contador += 1
+            if peca_i == "-":
+                contador_menos += 1
+            if contador_menos == pecas_figura:
+                break
+    else:
+        for i in range(len(pecas)):
+            if pecas[i] == peca:
+                contador += 1
+            if pecas[i] == "-":
+                contador_menos += 1
+            if contador_menos == pecas_figura:
+                break
+                    
+    return contador
+
+def conta_bola (peca, pecas_figura):
+    global pecas
+    contador = 0
+    contador_menos = 0
+
+    if len(pecas) <= 25:
+        for peca_i in pecas:
+            if peca_i == peca:
+                contador += 1
+            if peca_i == "0":
+                contador_menos += 1
+            if contador_menos == pecas_figura:
+                break
+    else:
+        for i in range(len(pecas)):
+            if pecas[i] == peca:
+                contador += 1
+            if pecas[i] == "0":
+                contador_menos += 1
+            if contador_menos == pecas_figura:
+                break
+                    
+    return contador
+
+def heuristica_simples(pecas_bola, pecas_mais, pecas_menos, pecas_x):
+    global pecas, pontos, posicoes_bola4, posicoes_bola8, posicoes_x9, posicoes_x5, posicoes_mais5, posicoes_mais9, posicoes_menos3, posicoes_menos2
+
+    pecas_bola = pecas_bola
+    pecas_mais = pecas_mais
+    pecas_menos = pecas_menos
+    pecas_x = pecas_x
+
+    indexBola = 0
+    indexMais = 0
+    indexMenos = 0
+
+    menos_colocadas = 0
+    bolas_colocadas = 0
+    x_colocadas = 0
+    mais_colocadas = 0
+
+    for peca in pecas:
+            if peca == "0":
+                coloca_peca(peca, posicoes_bola4[indexBola][0], posicoes_bola4[indexBola][1])
+                indexBola += 1
+                pecas_bola -= 1
+                bolas_colocadas += 1
+                if indexBola > 3:
+                    indexBola = 0
+                    pontos += 2**4
+            if peca == "*":
+                coloca_peca(peca, posicoes_x5[indexX][0], posicoes_x5[indexX][1])
+                indexX += 1
+                pecas_x -= 1
+                x_colocadas += 1
+                if indexX > 4:
+                    indexX = 0
+                    pontos += 2**5
+            if peca == "+":
+                coloca_peca(peca, posicoes_mais5[indexMais][0], posicoes_mais5[indexMais][1])
+                indexMais += 1
+                pecas_mais -= 1
+                mais_colocadas += 1
+                if indexMais > 4:
+                    indexMais = 0
+                    pontos += 2**5
+            if peca == "-":
+                if(pecas_menos>2):
+                    coloca_peca(peca, posicoes_menos3[indexMenos][0], posicoes_menos3[indexMenos][1])
+                    indexMenos += 1
+                    menos_colocadas += 1
+                    if indexMenos > 2:
+                        indexMenos = 0
+                        pontos += 2**3
+                        pecas_menos -= 3
+                else:
+                    coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
+                    indexMenos += 1
+                    menos_colocadas += 1
+                    if indexMenos > 1:
+                        indexMenos = 0
+                        pontos += 2**2
+                        pecas_menos -= 2
+
+def heuristica_bola3(pecas_bola, pecas_mais, pecas_menos, pecas_x):
+    global pecas, pontos, posicoes_bola4, posicoes_bola8, posicoes_x9, posicoes_x5, posicoes_mais5, posicoes_mais9, posicoes_menos3, posicoes_menos2
+
+    pecas_bola = pecas_bola
+    pecas_mais = pecas_mais
+    pecas_menos = pecas_menos
+    pecas_x = pecas_x
+
+    indexBola = 0
+    indexX = 0
+    indexMais = 0
+    indexMenos = 0
+
+    menos_colocadas = 0
+    menos_ordem = 0
+    bolas_colocadas = 0
+    x_colocadas = 0
+    mais_colocadas = 0
+
+    if (pecas_mais>=5 and pecas_x>=5 and (conta_mais("0",5)<=6 and conta_x("0",5)<=6)):
+
+        posicoes_bola8 = [(3,2),(2,1),(1,1),(1,2),(1,3),(2,3),(3,3),(3,1)] 
+
+        for peca in pecas:
+            if peca == "0":
+                coloca_peca(peca, posicoes_bola8[indexBola][0], posicoes_bola8[indexBola][1])
+                indexBola += 1
+                pecas_bola -= 1
+                bolas_colocadas += 1
+                if indexBola > 7:
+                    indexBola = 0
+                    pontos += 2**8
+            if peca == "*":
+                coloca_peca(peca, posicoes_x5[indexX][0], posicoes_x5[indexX][1])
+                indexX += 1
+                pecas_x -= 1
+                x_colocadas += 1
+                if indexX > 4:
+                    indexX = 0
+                    pontos += 2**5
+            if peca == "+":
+                coloca_peca(peca, posicoes_mais5[indexMais][0], posicoes_mais5[indexMais][1])
+                indexMais += 1
+                pecas_mais -= 1
+                mais_colocadas += 1
+                if indexMais > 4:
+                    indexMais = 0
+                    pontos += 2**5
+            if peca == "-":
+                if(pecas_menos>2):
+
+                    bolas_antes_menos = conta_menos("0",3+menos_ordem)
+
+                    if(bolas_antes_menos <= 5):
+                        coloca_peca(peca, posicoes_menos3[indexMenos][0], posicoes_menos3[indexMenos][1])
+                        indexMenos += 1
+                        menos_colocadas += 1
+                        if indexMenos > 2:
+                            indexMenos = 0
+                            pontos += 2**3
+                            pecas_menos -= 3
+                            menos_ordem += 3
+                    else:
+                        coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
+                        indexMenos += 1
+                        menos_colocadas += 1
+                        if indexMenos > 1:
+                            indexMenos = 0
+                            pontos += 2**2
+                            pecas_menos -= 2
+                            menos_ordem += 2
+                else:
+                    coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
+                    indexMenos += 1
+                    menos_colocadas += 1
+                    if indexMenos > 1:
+                        indexMenos = 0
+                        pontos += 2**2
+                        pecas_menos -= 2
+                        menos_ordem += 2
+            
+
+    elif(pecas_mais>=5 and pecas_x<5):
+
+            posicoes_bola8 = [(3,2),(2,1),(1,1),(1,2),(1,3),(3,3),(3,1),(2,3)] 
+
+            posicoes_x = [(5,1),(5,3),(4,2),(5,2),(4,1)]
+
+            for peca in pecas:
+                if peca == "0":
+                    coloca_peca(peca, posicoes_bola8[indexBola][0], posicoes_bola8[indexBola][1])
+                    indexBola += 1
+                    pecas_bola -= 1
+                    bolas_colocadas += 1
+                    if indexBola > 7:
+                        indexBola = 0
+                        pontos += 2**8
+                if peca == "*":
+                    coloca_peca(peca, posicoes_x[indexX][0], posicoes_x[indexX][1])
+                    indexX += 1
+                    pecas_x -= 1
+                    x_colocadas += 1
+                if peca == "+":
+                    coloca_peca(peca, posicoes_mais5[indexMais][0], posicoes_mais5[indexMais][1])
+                    indexMais += 1
+                    pecas_mais -= 1
+                    mais_colocadas += 1
+                    if indexMais > 4:
+                        indexMais = 0
+                        pontos += 2**5
+                if peca == "-":
+                    if(pecas_menos>2):
+
+                        bolas_antes_menos = conta_menos("0",3+menos_ordem)
+
+                        if(bolas_antes_menos <= 5):
+                            coloca_peca(peca, posicoes_menos3[indexMenos][0], posicoes_menos3[indexMenos][1])
+                            indexMenos += 1
+                            menos_colocadas += 1
+                            if indexMenos > 2:
+                                indexMenos = 0
+                                pontos += 2**3
+                                pecas_menos -= 3
+                                menos_ordem += 3
+                        else:
+                            coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
+                            indexMenos += 1
+                            menos_colocadas += 1
+                            if indexMenos > 1:
+                                indexMenos = 0
+                                pontos += 2**2
+                                pecas_menos -= 2
+                                menos_ordem += 2
+                    else:
+                        coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
+                        indexMenos += 1
+                        menos_colocadas += 1
+                        if indexMenos > 1:
+                            indexMenos = 0
+                            pontos += 2**2
+                            pecas_menos -= 2
+                            menos_ordem += 2
+                
+
+    elif(pecas_x>=5 and pecas_mais<5):
+
+        posicoes_bola8 = [(3,2),(2,1),(1,1),(1,2),(1,3),(2,3),(3,3),(3,1)] 
+
+        posicoes_x = [(5,3),(5,5),(4,4),(3,5),(3,3)]
+        posicoes_mais = [(3,4),(2,4),(2,5),(1,4),(2,3)]
+
+        posicoes_menos2 = [(5,1),(5,2)]
+        posicoes_menos3 = [(4,3),(4,1),(4,2)]
+
+        for peca in pecas:
+            if peca == "0":
+                coloca_peca(peca, posicoes_bola8[indexBola][0], posicoes_bola8[indexBola][1])
+                indexBola += 1
+                pecas_bola -= 1
+                bolas_colocadas += 1
+                if indexBola > 7:
+                    indexBola = 0
+                    pontos += 2**8
+            if peca == "*":
+                coloca_peca(peca, posicoes_x[indexX][0], posicoes_x[indexX][1])
+                indexX += 1
+                pecas_x -= 1
+                x_colocadas += 1
+                if indexX > 4:
+                    indexX = 0
+                    pontos += 2**5
+            if peca == "+":
+                coloca_peca(peca, posicoes_mais[indexMais][0], posicoes_mais[indexMais][1])
+                indexMais += 1
+                pecas_mais -= 1
+                mais_colocadas += 1
+            if peca == "-":
+                if(pecas_menos>2):
+                    coloca_peca(peca, posicoes_menos3[indexMenos][0], posicoes_menos3[indexMenos][1])
+                    indexMenos += 1
+                    menos_colocadas += 1
+                    if indexMenos > 2:
+                        indexMenos = 0
+                        pontos += 2**3
+                        pecas_menos -= 3
+                else:
+                    coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
+                    indexMenos += 1
+                    menos_colocadas += 1
+                    if indexMenos > 1:
+                        indexMenos = 0
+                        pontos += 2**2
+                        pecas_menos -= 2
+            
+    else:
+
+        posicoes_bola8 = [(3,2),(2,1),(1,1),(1,2),(1,3),(3,3),(3,1),(2,3)] 
+
+        posicoes_x = [(5,1),(5,3),(4,2),(5,2)]
+        posicoes_mais = [(5,4),(4,5),(5,5),(3,5)]
+
+        for peca in pecas:
+            if peca == "0":
+                coloca_peca(peca, posicoes_bola8[indexBola][0], posicoes_bola8[indexBola][1])
+                indexBola += 1
+                pecas_bola -= 1
+                bolas_colocadas += 1
+                if indexBola > 7:
+                    indexBola = 0
+                    pontos += 2**8 
+            if peca == "*":
+                coloca_peca(peca, posicoes_x[indexX][0], posicoes_x[indexX][1])
+                indexX += 1
+                pecas_x -= 1
+                x_colocadas += 1
+            if peca == "+":
+                coloca_peca(peca, posicoes_mais[indexMais][0], posicoes_mais[indexMais][1])
+                indexMais += 1
+                pecas_mais -= 1
+                mais_colocadas += 1
+            if peca == "-":
+                if(pecas_menos>2):
+
+                    bolas_antes_menos = conta_menos("0",3+menos_ordem)
+
+                    if(bolas_antes_menos <= 5):
+                        coloca_peca(peca, posicoes_menos3[indexMenos][0], posicoes_menos3[indexMenos][1])
+                        indexMenos += 1
+                        menos_colocadas += 1
+                        if indexMenos > 2:
+                            indexMenos = 0
+                            pontos += 2**3
+                            pecas_menos -= 3
+                            menos_ordem += 3
+                    else:
+                        coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
+                        indexMenos += 1
+                        menos_colocadas += 1
+                        if indexMenos > 1:
+                            indexMenos = 0
+                            pontos += 2**2
+                            pecas_menos -= 2
+                            menos_ordem += 2
+                else:
+                    coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
+                    indexMenos += 1
+                    menos_colocadas += 1
+                    if indexMenos > 1:
+                        indexMenos = 0
+                        pontos += 2**2
+                        pecas_menos -= 2
+                        menos_ordem += 2
+
+def heuristica_bola4(pecas_bola, pecas_mais, pecas_menos, pecas_x):
+    global pecas, pontos, posicoes_bola4, posicoes_bola8, posicoes_x9, posicoes_x5, posicoes_mais5, posicoes_mais9, posicoes_menos3, posicoes_menos2
+
+    pecas_bola = pecas_bola
+    pecas_mais = pecas_mais
+    pecas_menos = pecas_menos
+    pecas_x = pecas_x
+
+    indexBola = 0
+    indexX = 0
+    indexMais = 0
+    indexMenos = 0
+
+    menos_colocadas = 0
+    menos_ordem = 0
+    bolas_colocadas = 0
+    x_colocadas = 0
+    mais_colocadas = 0
+
+    if(pecas_x>=9 and conta_x("0",9)<=8): 
+
+        posicoes_bola12 = [(1,2),(1,4),(2,1),(3,1),(4,1),(4,3),(3,4),(4,4),(4,2),(1,1),(2,4),(1,3)]
+
+        posicoes_menos3 = [(5,2),(5,4),(5,3)]
+        posicoes_menos2 = [(5,2),(5,3)]
+        posicoes_mais = [(2,5),(3,5),(4,5)]
+
+        for peca in pecas:
+            if peca == "0":
+                coloca_peca(peca, posicoes_bola12[indexBola][0], posicoes_bola12[indexBola][1])
+                indexBola += 1
+                pecas_bola -= 1
+                bolas_colocadas += 1
+                if indexBola > 11:
+                    indexBola = 0
+                    pontos += 2**12
+            if peca == "*":
+                coloca_peca(peca, posicoes_x9[indexX][0], posicoes_x9[indexX][1])
+                indexX += 1
+                pecas_x -= 1
+                x_colocadas += 1
+                if indexX > 8:
+                    indexX = 0
+                    pontos += 2**9
+            if peca == "+":
+                coloca_peca(peca, posicoes_mais[indexMais][0], posicoes_mais[indexMais][1])
+                indexMais += 1
+                pecas_mais -= 1
+                mais_colocadas += 1
+            if peca == "-":
+                if(pecas_menos>2):
+                    coloca_peca(peca, posicoes_menos3[indexMenos][0], posicoes_menos3[indexMenos][1])
+                    indexMenos += 1
+                    menos_colocadas += 1
+                    if indexMenos > 2:
+                        indexMenos = 0
+                        pontos += 2**3
+                        pecas_menos -= 3
+                else:
+                    coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
+                    indexMenos += 1
+                    menos_colocadas += 1
+                    if indexMenos > 1:
+                        indexMenos = 0
+                        pontos += 2**2
+                        pecas_menos -= 2
+            
+
+    elif(pecas_mais>=9 and conta_mais("0",9)<=8):
+
+        posicoes_bola12 = [(1,1),(1,2),(1,4),(2,1),(4,1),(4,2),(2,4),(4,4),(3,4),(1,3),(3,1),(4,3)]
+
+        posicoes_menos = [(5,1),(5,2)]
+        posicoes_x = [(1,5),(5,5),(4,5),(2,5)]
+
+        for peca in pecas:
+            if peca == "0":
+                coloca_peca(peca, posicoes_bola12[indexBola][0], posicoes_bola12[indexBola][1])
+                indexBola += 1
+                pecas_bola -= 1
+                bolas_colocadas += 1
+                if indexBola > 11:
+                    indexBola = 0
+                    pontos += 2**12
+            if peca == "*":
+                coloca_peca(peca, posicoes_x[indexX][0], posicoes_x[indexX][1])
+                indexX += 1
+                pecas_x -= 1
+                x_colocadas += 1
+            if peca == "+":
+                coloca_peca(peca, posicoes_mais9[indexMais][0], posicoes_mais9[indexMais][1])
+                indexMais += 1 
+                pecas_mais -= 1
+                mais_colocadas += 1
+                if indexMais > 8:
+                    indexMais = 0
+                    pontos += 2**9
+            if peca == "-":
+                coloca_peca(peca, posicoes_menos[indexMenos][0], posicoes_menos[indexMenos][1])
+                indexMenos += 1
+                menos_colocadas += 1
+                if indexMenos > 1:
+                    indexMenos = 0
+                    pontos += 2**1
+                    pecas_menos -= 2
+            
+
+    elif(pecas_mais>=5 and pecas_x>=5 and (conta_mais("0",5)<=7 and conta_x("0",5)<=7)):
+
+        posicoes_bola12 = [(1,1),(1,2),(1,3),(1,4),(2,1),(4,1),(2,4),(3,1),(3,4),(4,4),(4,3),(4,2)] 
+
+        posicoes_menos3 = [(2,2),(2,4),(2,3)]
+        posicoes_menos2 = [(2,2),(2,3)]
+
+        for peca in pecas:
+            if peca == "0":
+                coloca_peca(peca, posicoes_bola12[indexBola][0], posicoes_bola12[indexBola][1])
+                indexBola += 1
+                pecas_bola -= 1
+                bolas_colocadas += 1
+                if indexBola > 11:
+                    indexBola = 0
+                    pontos += 2**12
+            if peca == "*":
+                coloca_peca(peca, posicoes_x5[indexX][0], posicoes_x5[indexX][1])
+                indexX += 1
+                pecas_x -= 1
+                x_colocadas += 1
+                if indexX > 4:
+                    indexX = 0
+                    pontos += 2**5
+            if peca == "+":
+                coloca_peca(peca, posicoes_mais5[indexMais][0], posicoes_mais5[indexMais][1])
+                indexMais += 1
+                pecas_mais -= 1
+                mais_colocadas += 1
+                if indexMais > 4:
+                    indexMais = 0
+                    pontos += 2**5
+            if peca == "-":
+                if(pecas_menos>2):
+
+                    bolas_antes_menos = conta_menos("0",3+menos_ordem)
+
+                    if(bolas_antes_menos <= 6):
+                        coloca_peca(peca, posicoes_menos3[indexMenos][0], posicoes_menos3[indexMenos][1])
+                        indexMenos += 1
+                        menos_colocadas += 1
+                        if indexMenos > 2:
+                            indexMenos = 0
+                            pontos += 2**3
+                            pecas_menos -= 3
+                            menos_ordem += 3
+                    else:
+                        coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
+                        indexMenos += 1
+                        menos_colocadas += 1
+                        if indexMenos > 1:
+                            indexMenos = 0
+                            pontos += 2**2
+                            pecas_menos -= 2
+                            menos_ordem += 2
+                else:
+                    coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
+                    indexMenos += 1
+                    menos_colocadas += 1
+                    if indexMenos > 1:
+                        indexMenos = 0
+                        pontos += 2**2
+                        pecas_menos -= 2
+                        menos_ordem += 2
+            
+
+    elif(pecas_x>=5):
+
+        posicoes_bola12 = [(1,1),(1,2),(1,3),(1,4),(2,1),(3,1),(4,1),(2,4),(3,4),(4,2),(4,3),(4,4)]
+
+        posicoes_x = [(5,3),(5,5),(3,3),(3,5),(4,4)]
+        posicoes_mais = [(3,2),(5,2),(5,4),(5,1)]
+
+        posicoes_menos3 = [(2,2),(2,4),(2,3)]
+        posicoes_menos2 = [(2,2),(2,3)]
+
+        for peca in pecas:
+            if peca == "0":
+                coloca_peca(peca, posicoes_bola12[indexBola][0], posicoes_bola12[indexBola][1])
+                indexBola += 1
+                pecas_bola -= 1
+                bolas_colocadas += 1
+                if indexBola > 11:
+                    indexBola = 0
+                    pontos += 2**12
+            if peca == "*":
+                coloca_peca(peca, posicoes_x[indexX][0], posicoes_x[indexX][1])
+                indexX += 1
+                pecas_x -= 1
+                x_colocadas += 1
+                if indexX > 4:
+                    indexX = 0
+                    pontos += 2**5
+            if peca == "+":
+                coloca_peca(peca, posicoes_mais[indexMais][0], posicoes_mais[indexMais][1])
+                indexMais += 1
+                pecas_mais -= 1
+                mais_colocadas += 1
+            if peca == "-":
+                if(pecas_menos>2):
+
+                    bolas_antes_menos = conta_menos("0",3+menos_ordem)
+
+                    if(bolas_antes_menos <= 7):
+                        coloca_peca(peca, posicoes_menos3[indexMenos][0], posicoes_menos3[indexMenos][1])
+                        indexMenos += 1
+                        menos_colocadas += 1
+                        if indexMenos > 2:
+                            indexMenos = 0
+                            pontos += 2**3
+                            pecas_menos -= 3
+                            menos_ordem += 3
+                    else:
+                        coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
+                        indexMenos += 1
+                        menos_colocadas += 1
+                        if indexMenos > 1:
+                            indexMenos = 0
+                            pontos += 2**2
+                            pecas_menos -= 2
+                            menos_ordem += 2
+                else:
+                    coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
+                    indexMenos += 1
+                    menos_colocadas += 1
+                    if indexMenos > 1:
+                        indexMenos = 0
+                        pontos += 2**2
+                        pecas_menos -= 2
+                        menos_ordem += 2
+            
+        
+    elif(pecas_mais>=5 and conta_mais("0",5)<=10):
+        
+        posicoes_bola12 = [(1,1),(1,2),(1,3),(1,4),(2,1),(3,1),(4,1),(2,4),(4,2),(4,4),(4,3),(3,4)]
+
+        posicoes_mais = [(2,3),(3,2),(3,3),(3,4),(4,3)]
+        posicoes_x = [(5,5),(3,5),(5,4),(4,5)]
+        posicoes_menos3 = [(5,1),(5,3),(5,2)]
+        posicoes_menos2 = [(5,1),(5,2)]
+
+        for peca in pecas:
+            if peca == "0":
+                coloca_peca(peca, posicoes_bola12[indexBola][0], posicoes_bola12[indexBola][1])
+                indexBola += 1
+                pecas_bola -= 1
+                bolas_colocadas += 1
+                if indexBola > 11:
+                    indexBola = 0
+                    pontos += 2**12
+            if peca == "*":
+                coloca_peca(peca, posicoes_x[indexX][0], posicoes_x[indexX][1])
+                indexX += 1
+                pecas_x -= 1
+                x_colocadas += 1
+            if peca == "+":
+                coloca_peca(peca, posicoes_mais[indexMais][0], posicoes_mais[indexMais][1])
+                indexMais += 1
+                pecas_mais -= 1
+                mais_colocadas += 1
+                if indexMais > 4:
+                    indexMais = 0
+                    pontos += 2**5
+            if peca == "-":
+                if(pecas_menos>2):
+                    coloca_peca(peca, posicoes_menos3[indexMenos][0], posicoes_menos3[indexMenos][1]) 
+                    indexMenos += 1
+                    menos_colocadas += 1
+                    if indexMenos > 2:
+                        indexMenos = 0
+                        pontos += 2**3
+                        pecas_menos -= 3
+                else:
+                    coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
+                    indexMenos += 1
+                    menos_colocadas += 1
+                    if indexMenos > 1:
+                        indexMenos = 0
+                        pontos += 2**2
+                        pecas_menos -= 2
+            
+
+    else:
+        if(pecas_menos>=2):
+
+            posicoes_bola12 = [(1,1),(1,2),(1,3),(1,4),(2,1),(3,1),(4,1),(3,4),(4,4),(4,3),(4,2),(2,4)]
+            
+            posicoes_x = [(5,1),(5,3),(3,3),(5,2)] 
+            posicoes_mais = [(5,4),(4,5),(5,5),(3,5)]
+
+            posicoes_menos3 = [(2,5),(2,3),(2,4)]
+            posicoes_menos2 = [(2,2),(2,3)]
+
+            for peca in pecas:
+                if peca == "0":
+                    coloca_peca(peca, posicoes_bola12[indexBola][0], posicoes_bola12[indexBola][1])
+                    indexBola += 1
+                    pecas_bola -= 1
+                    bolas_colocadas += 1
+                    if indexBola > 11:
+                        indexBola = 0
+                        pontos += 2**12
+                if peca == "*":
+                    coloca_peca(peca, posicoes_x[indexX][0], posicoes_x[indexX][1])
+                    indexX += 1
+                    pecas_x -= 1
+                    x_colocadas += 1
+                if peca == "+":
+                    coloca_peca(peca, posicoes_mais[indexMais][0], posicoes_mais[indexMais][1])
+                    indexMais += 1
+                    pecas_mais -= 1
+                    mais_colocadas += 1
+                if peca == "-":
+                    if(pecas_menos>2):
+                        coloca_peca(peca, posicoes_menos3[indexMenos][0], posicoes_menos3[indexMenos][1])
+                        indexMenos += 1
+                        menos_colocadas += 1
+                        if indexMenos > 2:
+                            indexMenos = 0
+                            pontos += 2**3
+                            pecas_menos -= 3
+                    else:
+                        coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
+                        indexMenos += 1
+                        menos_colocadas += 1
+                        if indexMenos > 1:
+                            indexMenos = 0
+                            pontos += 2**2
+                            pecas_menos -= 2
+                
+        else:
+            heuristica_bola3()
+
+def heuristica_bola5(pecas_bola, pecas_mais, pecas_menos, pecas_x):
+    global pecas, pontos, posicoes_bola4, posicoes_bola8, posicoes_x9, posicoes_x5, posicoes_mais5, posicoes_mais9, posicoes_menos3, posicoes_menos2
+
+    pecas_bola = pecas_bola
+    pecas_mais = pecas_mais
+    pecas_menos = pecas_menos
+    pecas_x = pecas_x
+
+    indexBola = 0
+    indexX = 0
+    indexMais = 0
+    indexMenos = 0
+
+    menos_colocadas = 0
+    menos_ordem = 0
+    bolas_colocadas = 0
+    x_colocadas = 0
+    mais_colocadas = 0
+
+    pecas_x_inicio = pecas_x
+    pecas_mais_inicio = pecas_mais
+
+    posicoes_bola16 = [(1,1),(1,2),(1,3),(1,4),(1,5),(2,1),(2,5),(3,1),(3,5),(4,1),(4,5),(5,1),(5,5),(5,2),(5,4),(5,3)]
+
+    posicoes_x = [(2,2),(2,4),(4,2),(4,4),(3,3)]
+    posicoes_mais = [(2,3),(3,2),(3,4),(4,3),(3,3)]
+
+    posicoes_menos3 = [(5,2),(5,4),(5,3)]
+    posicoes_menos2 = [(5,2),(5,3)]
+
+    posicoes_menos_mais = [(4,4),(4,2),(2,4)]
+    posicoes_menos_x = [(4,3),(3,4),(3,2)]
+    posicoes_menos_x_mais = [(3,3),(4,3),(4,4)]
+
+    for peca in pecas:
+        if peca == "0":
+            coloca_peca(peca, posicoes_bola16[indexBola][0], posicoes_bola16[indexBola][1])
+            indexBola += 1
+            pecas_bola -= 1
+            bolas_colocadas += 1
+            if indexBola>15:
+                indexBola = 0
+                pontos += 2**16
+        if peca == "*":
+            coloca_peca(peca, posicoes_x[indexX][0], posicoes_x[indexX][1])
+            indexX += 1
+            pecas_x -= 1
+            x_colocadas += 1
+            if indexX>4:
+                indexX = 0
+                pontos += 2**5
+        if peca == "+":
+            coloca_peca(peca, posicoes_mais[indexMais][0], posicoes_mais[indexMais][1])
+            indexMais += 1
+            pecas_mais -= 1 
+            mais_colocadas += 1
+            if indexMais>4:
+                indexMais = 0
+                pontos += 2**5
+        if peca == "-":
+
+            if(pecas_menos>2):
+
+                bolas_antes_menos3 = conta_menos("0",3+menos_ordem)
+                bolas_antes_menos2 = conta_menos("0",2+menos_ordem)
+
+                if(bolas_antes_menos3 <= 13):
+                    coloca_peca(peca, posicoes_menos3[indexMenos][0], posicoes_menos3[indexMenos][1])
+                    indexMenos += 1
+                    menos_colocadas += 1
+                    if indexMenos > 2:
+                        indexMenos = 0
+                        pontos += 2**3
+                        pecas_menos -= 3
+                        menos_ordem += 3
+                elif(bolas_antes_menos2 <= 14):
+                    coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
+                    indexMenos += 1
+                    menos_colocadas += 1
+                    if indexMenos > 1:
+                        indexMenos = 0
+                        pontos += 2**2
+                        pecas_menos -= 2
+                        menos_ordem += 2
+                else:
+                    if(pecas_x_inicio>=5):
+                        coloca_peca(peca, posicoes_menos_x[indexMenos][0], posicoes_menos_x[indexMenos][1]) 
+                        indexMenos += 1
+                        pecas_menos -= 1
+                        menos_colocadas += 1
+                        menos_ordem += 1
+                    elif(pecas_mais_inicio>=5):
+                        coloca_peca(peca, posicoes_menos_mais[indexMenos][0], posicoes_menos_mais[indexMenos][1]) 
+                        indexMenos += 1
+                        pecas_menos -= 1
+                        menos_colocadas += 1
+                        menos_ordem += 1
+                    else:
+                        coloca_peca(peca, posicoes_menos_x_mais[indexMenos][0], posicoes_menos_x_mais[indexMenos][1]) 
+                        indexMenos += 1
+                        pecas_menos -= 1
+                        menos_colocadas += 1
+                        menos_ordem += 1
+
+            else:
+
+                bolas_antes_menos = conta_menos("0",2+menos_colocadas)
+
+                if(bolas_antes_menos <= 14):
+                    coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
+                    indexMenos += 1
+                    menos_colocadas += 1
+                    if indexMenos > 1:
+                        indexMenos = 0
+                        pecas_menos -= 2
+                        menos_ordem += 2
+                else:
+                    if(pecas_x_inicio>=5):
+                        coloca_peca(peca, posicoes_menos_x[indexMenos][0], posicoes_menos_x[indexMenos][1]) 
+                        indexMenos += 1
+                        menos_colocadas += 1
+                        menos_ordem += 1
+                    elif(pecas_mais_inicio>=5):
+                        coloca_peca(peca, posicoes_menos_mais[indexMenos][0], posicoes_menos_mais[indexMenos][1]) 
+                        indexMenos += 1
+                        menos_colocadas += 1
+                        menos_ordem += 1
+                    else:
+                        coloca_peca(peca, posicoes_menos_x_mais[indexMenos][0], posicoes_menos_x_mais[indexMenos][1]) 
+                        indexMenos += 1
+                        menos_colocadas += 1
+                        menos_ordem += 1
+        
+def heuristica_mais9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
+    global pecas, pontos, posicoes_bola4, posicoes_bola8, posicoes_x9, posicoes_x5, posicoes_mais5, posicoes_mais9, posicoes_menos3, posicoes_menos2
+
+    pecas_bola = pecas_bola
+    pecas_mais = pecas_mais
+    pecas_menos = pecas_menos
+    pecas_x = pecas_x
+
+    indexBola = 0
+    indexX = 0
+    indexMais = 0
+    indexMenos = 0
+
+    menos_colocadas = 0
+    menos_ordem = 0
+    bolas_colocadas = 0
+    bolas_ordem = 0
+    x_colocadas = 0
+    mais_colocadas = 0
+
+    if(pecas_x>=9):
+
+        posicoes_x9 = [(5,5),(5,1),(4,4),(4,2),(2,4),(1,5),(2,2),(1,1),(3,3)]
+        posicoes_mais9 = [(1,3),(2,3),(3,1),(3,2),(3,4),(3,5),(4,3),(5,3),(3,3)]
+
+        posicoes_menos2 = [(1,4),(1,5)]
+        posicoes_menos3 = [(5,2),(5,4),(5,3)]
+
+        posicoes_bola_x = [(1,2),(2,1),(4,1),(5,2),(5,4),(4,5),(1,4)]
+        posicoes_menos_x_mais = [(1,4),(2,5),(4,5)]
+
+        x_antes_bola = conta_bola("*",4)
+
+        for peca in pecas:
+            if peca == "0":
+
+                if(x_antes_bola<=6):
+                    coloca_peca(peca, posicoes_bola4[indexBola][0], posicoes_bola4[indexBola][1])
+                    indexBola += 1
+                    pecas_bola -= 1
+                    bolas_colocadas += 1
+                    if indexBola > 3:
+                        indexBola = 0
+                        pontos += 2**4
+                        pecas_bola -= 4
+                        bolas_ordem += 4
+                else:
+                    coloca_peca(peca, posicoes_bola_x[indexBola][0], posicoes_bola_x[indexBola][1])
+                    indexBola += 1
+                    pecas_bola -= 1
+                    bolas_colocadas += 1
+
+            if peca == "*":
+                coloca_peca(peca, posicoes_x9[indexX][0], posicoes_x9[indexX][1])
+                indexX += 1
+                pecas_x -= 1
+                x_colocadas += 1 
+                if indexX > 8:
+                    indexX = 0
+                    pontos += 2**9
+            if peca == "+":
+                coloca_peca(peca, posicoes_mais9[indexMais][0], posicoes_mais9[indexMais][1])
+                indexMais += 1
+                pecas_mais -= 1
+                mais_colocadas += 1
+                if indexMais > 8:
+                    indexMais = 0
+                    pontos += 2**9
+            if peca == "-":
+
+                if(pecas_menos>2):
+
+                    mais_antes_menos3 = conta_menos("+",3+menos_ordem)
+                    x_antes_menos2 = conta_menos("*",2+menos_ordem)
+
+                    if(mais_antes_menos3 <= 7):
+                        coloca_peca(peca, posicoes_menos3[indexMenos][0], posicoes_menos3[indexMenos][1])
+                        indexMenos += 1
+                        menos_colocadas += 1
+                        if indexMenos > 2:
+                            indexMenos = 0
+                            pontos += 2**3
+                            pecas_menos -= 3
+                            menos_ordem += 3
+                    elif(x_antes_menos2 <= 5):
+                        coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
+                        indexMenos += 1
+                        menos_colocadas += 1
+                        if indexMenos > 1:
+                            indexMenos = 0
+                            pontos += 2**2
+                            pecas_menos -= 2
+                            menos_ordem += 2
+                    else:
+                        coloca_peca(peca, posicoes_menos_x_mais[indexMenos][0], posicoes_menos_x_mais[indexMenos][1]) 
+                        indexMenos += 1
+                        pecas_menos -= 1
+                        menos_colocadas += 1
+                        menos_ordem += 1
+
+                else:
+
+                    bolas_antes_menos = conta_menos("0",2+menos_ordem)
+
+                    if(bolas_antes_menos <= 14):
+                        coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
+                        indexMenos += 1
+                        menos_colocadas += 1
+                        if indexMenos > 1:
+                            indexMenos = 0
+                            pontos += 2**2
+                            pecas_menos -= 2
+                            menos_ordem += 2
+                    else:
+                        coloca_peca(peca, posicoes_menos_x_mais[indexMenos][0], posicoes_menos_x_mais[indexMenos][1]) 
+                        indexMenos += 1
+                        pecas_menos -= 1
+                        menos_colocadas += 1
+                        menos_ordem += 1
+            
+
+    elif(pecas_bola>=8 and pecas_x>=5 and (conta_bola("+",8)<=2 and conta_x("+",5)<=2)):
+
+        posicoes_mais9 = [(3,4),(4,3),(3,5),(5,3),(1,3),(2,3),(3,1),(3,2),(3,3)]
+        posicoes_bola8 = [(1,1),(1,2),(2,1),(1,3),(3,2),(3,1),(3,3),(2,3)]
+        posicoes_x5 = [(5,5),(5,3),(4,4),(3,5),(3,3)]
+
+        for peca in pecas:
+            if peca == "0":
+                coloca_peca(peca, posicoes_bola8[indexBola][0], posicoes_bola8[indexBola][1])
+                indexBola += 1
+                pecas_bola -= 1
+                bolas_colocadas += 1
+                if indexBola > 7:
+                    indexBola = 0
+                    pontos += 2**8
+                    pecas_bola -= 8
+                    bolas_ordem += 8
+            if peca == "*":
+                coloca_peca(peca, posicoes_x5[indexX][0], posicoes_x5[indexX][1])
+                indexX += 1
+                pecas_x -= 1
+                x_colocadas += 1
+                if indexX > 4:
+                    indexX = 0
+                    pontos += 2**5
+            if peca == "+":
+                coloca_peca(peca, posicoes_mais9[indexMais][0], posicoes_mais9[indexMais][1])
+                indexMais += 1
+                pecas_mais -= 1
+                mais_colocadas += 1
+                if indexMais > 8:
+                    indexMais = 0
+                    pontos += 2**9
+            if peca == "-":
+
+                if(pecas_menos>2):
+
+                    bola_antes_menos3 = conta_menos("0",3+menos_ordem)
+
+                    if(bola_antes_menos3 <= 7):
+                        coloca_peca(peca, posicoes_menos3[indexMenos][0], posicoes_menos3[indexMenos][1])
+                        indexMenos += 1
+                        menos_colocadas += 1
+                        if indexMenos > 2:
+                            indexMenos = 0
+                            pontos += 2**3
+                            pecas_menos -= 3
+                            menos_ordem += 3
+                    else:
+                        coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
+                        indexMenos += 1
+                        menos_colocadas += 1
+                        if indexMenos > 1:
+                            indexMenos = 0
+                            pontos += 2**2 
+                            pecas_menos -= 2
+                            menos_ordem += 2
+
+                else:
+                    coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
+                    indexMenos += 1
+                    menos_colocadas += 1
+                    if indexMenos > 1:
+                        indexMenos = 0
+                        pontos += 2**2
+                        pecas_menos -= 2
+                        menos_ordem += 2
+            
+
+    elif(pecas_bola>=8 and conta_bola("+",8)<=4):
+
+        posicoes_mais9 = [(3,4),(3,5),(4,3),(5,3),(1,3),(2,3),(3,1),(3,2),(3,3)]
+        posicoes_bola8 = [(1,1),(1,2),(2,1),(1,3),(3,2),(3,1),(3,3),(2,3)]
+
+        posicoes_x = [(5,1),(4,2),(5,5),(4,4),(2,2),(1,5),(4,1),(5,2)]
+
+        for peca in pecas:
+            if peca == "0":
+                coloca_peca(peca, posicoes_bola8[indexBola][0], posicoes_bola8[indexBola][1])
+                indexBola += 1
+                pecas_bola -= 1
+                bolas_colocadas += 1
+                if indexBola > 7:
+                    indexBola = 0
+                    pontos += 2**8
+                    pecas_bola -= 8
+                    bolas_ordem += 8
+            if peca == "*":
+                coloca_peca(peca, posicoes_x[indexX][0], posicoes_x[indexX][1])
+                indexX += 1
+                pecas_x -= 1
+                x_colocadas += 1
+            if peca == "+":
+                coloca_peca(peca, posicoes_mais9[indexMais][0], posicoes_mais9[indexMais][1])
+                indexMais += 1
+                pecas_mais -= 1
+                mais_colocadas += 1
+                if indexMais > 8:
+                    indexMais = 0
+                    pontos += 2**9
+            if peca == "-":
+
+                if(pecas_menos>2):
+
+                    bola_antes_menos3 = conta_menos("0",3+menos_ordem)
+
+                    if(bola_antes_menos3 <= 7):
+                        coloca_peca(peca, posicoes_menos3[indexMenos][0], posicoes_menos3[indexMenos][1])
+                        indexMenos += 1
+                        menos_colocadas += 1
+                        if indexMenos > 2:
+                            indexMenos = 0
+                            pontos += 2**3
+                            pecas_menos -= 3
+                            menos_ordem += 3
+                    else:
+                        coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
+                        indexMenos += 1
+                        menos_colocadas += 1
+                        if indexMenos > 1:
+                            indexMenos = 0
+                            pontos += 2**2
+                            pecas_menos -= 2
+                            menos_ordem += 2
+
+                else:
+                    coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
+                    indexMenos += 1
+                    menos_colocadas += 1
+                    if indexMenos > 1:
+                        indexMenos = 0
+                        pontos += 2**2
+                        pecas_menos -= 2
+                        menos_ordem += 2
+            
+
+    elif(pecas_x>=5):
+
+        posicoes_mais9 = [(3,4),(3,5),(4,3),(5,3),(2,3),(3,1),(3,2),(1,3),(3,3)]
+
+        posicoes_x5 = [(4,4),(4,2),(2,4),(2,2),(3,3)]
+
+        posicoes_menos3 = [(1,5),(1,3),(1,4)]
+        posicoes_menos2 = [(1,5),(1,4)]
+
+        posicoes_bola4 = [(1,1),(1,2),(2,1),(2,2)]
+
+        posicoes_bola_x = [(1,1),(1,2),(2,1),(4,1),(5,1),(5,2),(5,4),(5,5),(4,5),(2,5)]
+
+        for peca in pecas:
+            if peca == "0":
+
+                x_antes_bola = conta_bola("*",4+bolas_ordem)
+
+                if(x_antes_bola<=3):
+                    coloca_peca(peca, posicoes_bola4[indexBola][0], posicoes_bola4[indexBola][1])
+                    indexBola += 1
+                    pecas_bola -= 1
+                    bolas_colocadas += 1
+                    if indexBola > 3:
+                        indexBola = 0
+                        pontos += 2**4
+                        bolas_ordem += 4
+                else:
+                    coloca_peca(peca, posicoes_bola_x[indexBola][0], posicoes_bola_x[indexBola][1])
+                    indexBola += 1
+                    pecas_bola -= 1
+                    bolas_colocadas += 1
+
+            if peca == "*":
+                coloca_peca(peca, posicoes_x5[indexX][0], posicoes_x5[indexX][1])
+                indexX += 1
+                pecas_x -= 1
+                x_colocadas += 1
+                if indexX > 4:
+                    indexX = 0
+                    pontos += 2**5
+            if peca == "+":
+                coloca_peca(peca, posicoes_mais9[indexMais][0], posicoes_mais9[indexMais][1])
+                indexMais += 1
+                pecas_mais -= 1 
+                mais_colocadas += 1
+                if indexMais > 8:
+                    indexMais = 0
+                    pontos += 2**9
+            if peca == "-":
+
+                if(pecas_menos>2):
+
+                    mais_antes_menos3 = conta_menos("+",3+menos_ordem)
+
+                    if(mais_antes_menos3 <= 7):
+                        coloca_peca(peca, posicoes_menos3[indexMenos][0], posicoes_menos3[indexMenos][1])
+                        indexMenos += 1
+                        menos_colocadas += 1
+                        if indexMenos > 2:
+                            indexMenos = 0
+                            pontos += 2**3
+                            pecas_menos -= 3
+                            menos_ordem += 3
+                    else:
+                        coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
+                        indexMenos += 1
+                        menos_colocadas += 1
+                        if indexMenos > 1:
+                            indexMenos = 0
+                            pontos += 2**2
+                            pecas_menos -= 2
+                            menos_ordem += 2
+
+                else:
+                    coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
+                    indexMenos += 1
+                    menos_colocadas += 1
+                    if indexMenos > 1:
+                        indexMenos = 0
+                        pontos += 2**2
+                        pecas_menos -= 2
+                        menos_ordem += 2
+            
+    
+    else:
+
+        posicoes_mais9 = [(3,4),(3,5),(4,3),(5,3),(3,1),(3,2),(2,3),(1,3),(3,3)]
+
+        posicoes_x = [(5,1),(4,2),(5,5),(4,4)]
+
+        for peca in pecas:
+            if peca == "0":
+                coloca_peca(peca, posicoes_bola4[indexBola][0], posicoes_bola4[indexBola][1])
+                indexBola += 1
+                pecas_bola -= 1
+                bolas_colocadas += 1
+                if indexBola > 3:
+                    indexBola = 0
+                    pontos += 2**4
+                    pecas_bola -= 4
+                    bolas_ordem += 4
+            if peca == "*":
+                coloca_peca(peca, posicoes_x5[indexX][0], posicoes_x5[indexX][1])
+                indexX += 1
+                pecas_x -= 1
+                x_colocadas += 1
+            if peca == "+":
+                coloca_peca(peca, posicoes_mais9[indexMais][0], posicoes_mais9[indexMais][1])
+                indexMais += 1 
+                pecas_mais -= 1
+                mais_colocadas += 1
+                if indexMais > 8:
+                    indexMais = 0
+                    pontos += 2**9
+            if peca == "-":
+
+                if(pecas_menos>2):
+
+                    mais_antes_menos3 = conta_menos("+",3+menos_ordem)
+
+                    if(mais_antes_menos3 <= 8):
+                        coloca_peca(peca, posicoes_menos3[indexMenos][0], posicoes_menos3[indexMenos][1])
+                        indexMenos += 1
+                        menos_colocadas += 1
+                        if indexMenos > 2:
+                            indexMenos = 0
+                            pontos += 2**3
+                            pecas_menos -= 3
+                            menos_ordem += 3
+                    else:
+                        coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
+                        indexMenos += 1
+                        menos_colocadas += 1
+                        if indexMenos > 1:
+                            indexMenos = 0
+                            pontos += 2**2
+                            pecas_menos -= 2
+                            menos_ordem += 2
+
+                else:
+                    coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
+                    indexMenos += 1
+                    menos_colocadas += 1
+                    if indexMenos > 1:
+                        indexMenos = 0
+                        pontos += 2**2
+                        pecas_menos -= 2
+                        menos_ordem += 2
+            
+def heuristica_x9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
+    global pecas, pontos, posicoes_bola4, posicoes_bola8, posicoes_x9, posicoes_x5, posicoes_mais5, posicoes_mais9, posicoes_menos3, posicoes_menos2
+
+    pecas_bola = pecas_bola
+    pecas_mais = pecas_mais
+    pecas_menos = pecas_menos
+    pecas_x = pecas_x
+
+    indexBola = 0
+    indexX = 0
+    indexMais = 0
+    indexMenos = 0
+
+    menos_colocadas = 0
+    menos_ordem = 0
+    bolas_colocadas = 0
+    bolas_ordem = 0
+    x_colocadas = 0
+    mais_colocadas = 0
+
+    if(pecas_bola>=8 and pecas_mais>=5 and (conta_bola("*",8)<=6 and conta_mais("*",5)<=6)):
+
+        posicoes_x9 = [(5,5),(4,2),(2,2),(2,4),(1,5),(5,1),(4,4),(1,1),(3,3)]
+        posicoes_mais5 = [(5,4),(4,3),(4,5),(3,4),(4,4)]
+
+        posicoes_menos3 = [(5,1),(5,3),(5,2)]
+        posicoes_menos2 = [(5,2),(5,3)]
+
+        for peca in pecas:
+            if peca == "0":
+                coloca_peca(peca, posicoes_bola8[indexBola][0], posicoes_bola8[indexBola][1])
+                indexBola += 1
+                pecas_bola -= 1
+                bolas_colocadas += 1
+                if indexBola > 7:
+                    indexBola = 0
+                    pontos += 2**8
+                    pecas_bola -= 8
+                    bolas_ordem += 8
+            if peca == "*":
+                coloca_peca(peca, posicoes_x9[indexX][0], posicoes_x9[indexX][1])
+                indexX += 1
+                pecas_x -= 1
+                x_colocadas += 1
+                if indexX > 8:
+                    indexX = 0
+                    pontos += 2**9
+            if peca == "+":
+                coloca_peca(peca, posicoes_mais5[indexMais][0], posicoes_mais5[indexMais][1])
+                indexMais += 1
+                pecas_mais -= 1
+                mais_colocadas += 1
+                if indexMais > 4:
+                    indexMais = 0
+                    pontos += 2**5
+            if peca == "-":
+
+                if(pecas_menos>2):
+
+                    x_antes_menos3 = conta_menos("*",3+menos_ordem)
+
+                    if(x_antes_menos3 <= 5):
+                        coloca_peca(peca, posicoes_menos3[indexMenos][0], posicoes_menos3[indexMenos][1])
+                        indexMenos += 1
+                        menos_colocadas += 1
+                        if indexMenos > 2:
+                            indexMenos = 0
+                            pontos += 2**3
+                            pecas_menos -= 3
+                            menos_ordem += 3
+                    else:
+                        coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
+                        indexMenos += 1
+                        menos_colocadas += 1
+                        if indexMenos > 1:
+                            indexMenos = 0
+                            pontos += 2**2
+                            pecas_menos -= 2
+                            menos_ordem += 2
+
+                else:
+                    coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
+                    indexMenos += 1
+                    menos_colocadas += 1
+                    if indexMenos > 1:
+                        indexMenos = 0
+                        pontos += 2**2
+                        pecas_menos -= 2
+                        menos_ordem += 2
+            
+
+    elif(pecas_bola>=8 and conta_bola("*",8)<=7):
+
+        posicoes_x9 = [(5,5),(4,2),(2,2),(2,4),(1,5),(5,1),(4,4),(1,1),(3,3)]
+
+        posicoes_mais = [(4,3),(4,5),(3,4),(4,1),(2,5),(1,4),(3,5),(5,4)]
+
+        posicoes_menos3 = [(5,2),(5,4),(5,3)]
+        posicoes_menos2 = [(5,2),(5,3)]
+
+        for peca in pecas:
+            if peca == "0":
+                coloca_peca(peca, posicoes_bola8[indexBola][0], posicoes_bola8[indexBola][1])
+                indexBola += 1
+                pecas_bola -= 1
+                bolas_colocadas += 1
+                if indexBola > 7:
+                    indexBola = 0
+                    pontos += 2**8
+                    pecas_bola -= 8
+                    bolas_ordem += 8
+            if peca == "*":
+                coloca_peca(peca, posicoes_x9[indexX][0], posicoes_x9[indexX][1])
+                indexX += 1
+                pecas_x -= 1
+                x_colocadas += 1
+                if indexX > 8:
+                    indexX = 0
+                    pontos += 2**9
+            if peca == "+":
+                coloca_peca(peca, posicoes_mais[indexMais][0], posicoes_mais[indexMais][1])
+                indexMais += 1
+                pecas_mais -= 1
+                mais_colocadas += 1
+            if peca == "-":
+
+                if(pecas_menos>2):
+                    coloca_peca(peca, posicoes_menos3[indexMenos][0], posicoes_menos3[indexMenos][1])
+                    indexMenos += 1
+                    menos_colocadas += 1
+                    if indexMenos > 2:
+                        indexMenos = 0
+                        pontos += 2**3
+                        pecas_menos -= 3
+                        menos_ordem += 3
+
+                else:
+                    coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
+                    indexMenos += 1
+                    menos_colocadas += 1
+                    if indexMenos > 1:
+                        indexMenos = 0
+                        pontos += 2**2
+                        pecas_menos -= 2
+                        menos_ordem += 2
+            
+
+    elif(pecas_mais>=5):
+
+        posicoes_x9 = [(5,1),(5,5),(4,2),(4,4),(1,5),(2,4),(2,2),(1,1),(3,3)]
+
+        posicoes_mais5 = [(2,3),(3,2),(3,4),(4,3),(3,3)]
+    
+        posicoes_menos3 = [(5,2),(5,4),(5,3)]
+        posicoes_menos2 = [(5,2),(5,3)]
+
+        posicoes_bola4 = [(2,1),(1,2),(2,2),(1,1)]
+
+        posicoes_bola_x = [(1,2),(2,1),(1,3),(3,1),(1,4),(4,1),(2,5),(3,5),(4,5)]
+
+        for peca in pecas:
+            if peca == "0":
+
+                x_antes_bola = conta_bola("*",4+bolas_ordem)
+
+                if(x_antes_bola <= 7):
+                    coloca_peca(peca, posicoes_bola4[indexBola][0], posicoes_bola4[indexBola][1])
+                    indexBola += 1
+                    pecas_bola -= 1
+                    bolas_colocadas += 1
+                    if indexBola > 3:
+                        indexBola = 0
+                        pontos += 2**4
+                        bolas_ordem += 4
+                else:
+                    coloca_peca(peca, posicoes_bola_x[indexBola][0], posicoes_bola_x[indexBola][1])
+                    indexBola += 1
+                    pecas_bola -= 1
+                    bolas_colocadas += 1
+
+            if peca == "*":
+                coloca_peca(peca, posicoes_x9[indexX][0], posicoes_x9[indexX][1])
+                indexX += 1 
+                pecas_x -= 1
+                x_colocadas += 1
+                if indexX > 8:
+                    indexX = 0
+                    pontos += 2**9
+            if peca == "+":
+                coloca_peca(peca, posicoes_mais[indexMais][0], posicoes_mais[indexMais][1])
+                indexMais += 1
+                pecas_mais -= 1
+                mais_colocadas += 1
+                if indexMais > 4:
+                    indexMais = 0
+                    pontos += 2**5
+            if peca == "-":
+
+                if(pecas_menos>2):
+                    coloca_peca(peca, posicoes_menos3[indexMenos][0], posicoes_menos3[indexMenos][1])
+                    indexMenos += 1
+                    menos_colocadas += 1
+                    if indexMenos > 2:
+                        indexMenos = 0
+                        pontos += 2**3
+                        pecas_menos -= 3
+                        menos_ordem += 3
+
+                else:
+                    coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
+                    indexMenos += 1
+                    menos_colocadas += 1
+                    if indexMenos > 1:
+                        indexMenos = 0
+                        pontos += 2**2
+                        pecas_menos -= 2
+                        menos_ordem += 2
+
+    else:
+
+        posicoes_bola4 = [(2,1),(1,2),(2,2),(1,1)]
+
+        posicoes_bola_x = [(1,2),(2,1),(1,3),(3,1),(1,4),(4,1),(2,5),(3,5),(4,5)]
+
+        posicoes_mais = [(2,3),(3,2),(3,4),(4,3)]
+
+        posicoes_menos3 = [(5,2),(5,4),(5,3)]
+        posicoes_menos2 = [(5,2),(5,3)]
+
+        for peca in pecas:
+            if peca == "0":
+
+                x_antes_bola = conta_bola("*",4+bolas_ordem)
+
+                if(x_antes_bola <= 7):
+                    coloca_peca(peca, posicoes_bola4[indexBola][0], posicoes_bola4[indexBola][1])
+                    indexBola += 1
+                    pecas_bola -= 1
+                    bolas_colocadas += 1
+                    if indexBola > 3:
+                        indexBola = 0
+                        pontos += 2**4
+                        bolas_ordem += 4
+                else:
+                    coloca_peca(peca, posicoes_bola_x[indexBola][0], posicoes_bola_x[indexBola][1])
+                    indexBola += 1
+                    pecas_bola -= 1
+                    bolas_colocadas += 1
+
+            if peca == "*":
+                coloca_peca(peca, posicoes_x9[indexX][0], posicoes_x9[indexX][1])
+                indexX += 1
+                pecas_x -= 1
+                x_colocadas += 1
+                if indexX > 8:
+                    indexX = 0
+                    pontos += 2**9
+            if peca == "+":
+                coloca_peca(peca, posicoes_mais[indexMais][0], posicoes_mais[indexMais][1])
+                indexMais += 1
+                pecas_mais -= 1
+                mais_colocadas += 1
+            if peca == "-":
+
+                if(pecas_menos>2):
+                    coloca_peca(peca, posicoes_menos3[indexMenos][0], posicoes_menos3[indexMenos][1])
+                    indexMenos += 1
+                    menos_colocadas += 1
+                    if indexMenos > 2:
+                        indexMenos = 0
+                        pontos += 2**3
+                        pecas_menos -= 3
+
+                else:
+                    coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
+                    indexMenos += 1
+                    menos_colocadas += 1
+                    if indexMenos > 1:
+                        indexMenos = 0
+                        pontos += 2**2
+                        pecas_menos -= 2
+
+def escolher_heuristica():
+    global matriz_jogo, pecas, pecas_bola, pecas_mais, pecas_menos, pecas_x
+
+    pecas_bola = numero_pecas_dadas("0")
+    pecas_mais = numero_pecas_dadas("+")
+    pecas_menos = numero_pecas_dadas("-")
+    pecas_x = numero_pecas_dadas("*")
+
+    #Heiristica bola 16
+    #Heiristica bola 12
+    #Heiristica mais de 9
+    #Heiristica x de 9
+    #Heiristica bola 8
+    #Heiristica simples
+
+    if(pecas_bola >= 16):
+        heuristica_bola5(pecas_bola, pecas_mais, pecas_menos, pecas_x)
+    elif(16 > pecas_bola >= 12):
+        heuristica_bola4(pecas_bola, pecas_mais, pecas_menos, pecas_x)
+    elif(pecas_mais >= 9):
+        heuristica_mais9(pecas_bola, pecas_mais, pecas_menos, pecas_x)
+    elif(pecas_x >= 9):
+        heuristica_x9(pecas_bola, pecas_mais, pecas_menos, pecas_x)
+    elif (12 > pecas_bola >= 8):
+        heuristica_bola3(pecas_bola, pecas_mais, pecas_menos, pecas_x)
+    else:
+        heuristica_simples(pecas_bola, pecas_mais, pecas_menos, pecas_x)
+
+#Funcao que inicia o jogo, percorrendo as pecas do array e colocando-as na matriz de jogo
 def jogar():
     global matriz_jogo, matriz_heuristica, pecas, pontos
-    pecas_aux=pecas.copy()
-    ordem=posicao_pecas()
-    pecas=pecas_aux
-    conta_bolas=0
-    conta_mais=0
-    conta_vezes=0
-    conta_menos=0
-    
-    for q in range(len(ordem)):
-        pontos+=2**ordem[q][0]
-    
-    for i in range(len(pecas)):
-        tipo=pecas[i]
-        if len(ordem)>0:
-            if tipo=="0":
-                conta_bolas+=1
-            elif tipo=="+":
-                conta_mais+=1
-            elif tipo=="*":
-                conta_vezes+=1
+
+    if(len(pecas)>25):
+
+        pecas_aux=pecas.copy()
+        ordem=posicao_pecas()
+        pecas=pecas_aux
+        conta_bolas=0
+        conta_mais=0
+        conta_vezes=0
+        conta_menos=0
+        
+        for q in range(len(ordem)):
+            pontos+=2**ordem[q][0]
+        
+        for i in range(len(pecas)):
+            tipo=pecas[i]
+            if len(ordem)>0:
+                if tipo=="0":
+                    conta_bolas+=1
+                elif tipo=="+":
+                    conta_mais+=1
+                elif tipo=="*":
+                    conta_vezes+=1
+                else:
+                    conta_menos+=1
+                for z in range(len(ordem)):
+                    if tipo==ordem[z][1]:
+                        if tipo=="0":
+                            coordenadas=procura_coordenada(ordem[z], conta_bolas)
+                            coloca_peca(pecas[i],coordenadas[0],coordenadas[1])
+                            if conta_bolas==ordem[z][0]:
+                                conta_bolas=0
+                                ordem.pop(z)
+                        elif tipo=="+":
+                            coordenadas=procura_coordenada_mais_e_vezes(ordem[z], conta_mais)
+                            coloca_peca(pecas[i],coordenadas[0],coordenadas[1])
+                            if conta_mais==ordem[z][0]:
+                                conta_mais=0
+                                ordem.pop(z)
+                        elif tipo=="*":
+                            coordenadas=procura_coordenada_mais_e_vezes(ordem[z], conta_vezes)
+                            coloca_peca(pecas[i],coordenadas[0],coordenadas[1])
+                            if conta_vezes==ordem[z][0]:
+                                conta_vezes=0
+                                ordem.pop(z)
+                        else:
+                            coordenadas=procura_coordenada_menos(ordem[z], conta_menos, ordem[z][0])
+                            coloca_peca(pecas[i],coordenadas[0],coordenadas[1])
+                            if conta_menos==ordem[z][0]:
+                                conta_menos=0
+                                ordem.pop(z)
+                                
+                        break
             else:
-                conta_menos+=1
-            for z in range(len(ordem)):
-                if tipo==ordem[z][1]:
-                    if tipo=="0":
-                        coordenadas=procura_coordenada(ordem[z], conta_bolas)
-                        coloca_peca(pecas[i],coordenadas[0],coordenadas[1])
-                        if conta_bolas==ordem[z][0]:
-                            conta_bolas=0
-                            ordem.pop(z)
-                    elif tipo=="+":
-                        coordenadas=procura_coordenada_mais_e_vezes(ordem[z], conta_mais)
-                        coloca_peca(pecas[i],coordenadas[0],coordenadas[1])
-                        if conta_mais==ordem[z][0]:
-                            conta_mais=0
-                            ordem.pop(z)
-                    elif tipo=="*":
-                        coordenadas=procura_coordenada_mais_e_vezes(ordem[z], conta_vezes)
-                        coloca_peca(pecas[i],coordenadas[0],coordenadas[1])
-                        if conta_vezes==ordem[z][0]:
-                            conta_vezes=0
-                            ordem.pop(z)
-                    else:
-                        coordenadas=procura_coordenada_menos(ordem[z], conta_menos, ordem[z][0])
-                        coloca_peca(pecas[i],coordenadas[0],coordenadas[1])
-                        if conta_menos==ordem[z][0]:
-                            conta_menos=0
-                            ordem.pop(z)
-                            
-                    break
-        else:
-            coordenadas=procura_coordenada_vazia()
-            coloca_peca(pecas[i],coordenadas[0],coordenadas[1])
+                coordenadas=procura_coordenada_vazia()
+                coloca_peca(pecas[i],coordenadas[0],coordenadas[1])
+    else:
+
+        escolher_heuristica()
 
 def retira_pontos():
     global pontos, matriz_jogo, pecas
@@ -1723,6 +3294,3 @@ larga_objeto()
 jogar()
 retira_pontos()
 print(pontos)
-
-           
-#jogo()
