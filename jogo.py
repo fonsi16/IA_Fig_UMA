@@ -1105,18 +1105,22 @@ def maior_figura(limite, maximo_fig):
                 maximo_fig[3].remove(total_menos)
                 return [total_menos,"-"]
 
-#!!!!!!!!!!!!!!!!!!!->>usar copilot
+# Função para calcular os pontos máximos e a figura correspondente a partir de uma lista de figuras fornecida
 def maximo_pontos(figuras):
     
     maior_valor = float('-inf')
     maior_figura = None
 
+    # Percorre a lista de figuras
     for i, sublist in enumerate(figuras):
         if sublist:
+            # Encontra o valor máximo na sublista atual
             maximo_atual = max(sublist, default=float('-inf'))
+            # Verifica se o valor máximo é maior que o maior valor encontrado até agora
             if maximo_atual > maior_valor:
                 maior_valor = maximo_atual
 
+                # Atribui a figura correspondente com base no índice da sublista
                 if i == 0:
                     maior_figura = "0"
                 elif i == 1:
@@ -1328,115 +1332,115 @@ def inserir_peca_heuristica(ordem, peca, linha, coluna):
 
     matriz_heuristica[linha][coluna].append(ordem)
 
-#função que escolhe a melhor posicção onde colocar as bolas na matriz heuristica a partir de um contador
-def posicao_bola_heuristica(tamanho,ordem,peca):
+# Função que escolhe a melhor posição onde colocar as bolas na matriz heurística a partir de um contador
+def posicao_bola_heuristica(tamanho, ordem, peca):
     global matriz_heuristica
-    posicao=[]
-    contador=0
-    inicio_4=[[0,0],[1,1],[0,1],[1,0]]
-    inicio_8=[[0,0],[0,1],[0,2],[1,0],[2,0],[2,2],[2,1],[1,2]]
-    inicio_12=[[0,0],[0,1],[0,2],[0,3],[1,0],[2,0],[3,0],[3,1],[3,2],[3,3],[1,3],[2,3]]
+    posicao = []
+    contador = 0
+    inicio_4 = [[0, 0], [1, 1], [0, 1], [1, 0]]
+    inicio_8 = [[0, 0], [0, 1], [0, 2], [1, 0], [2, 0], [2, 2], [2, 1], [1, 2]]
+    inicio_12 = [[0, 0], [0, 1], [0, 2], [0, 3], [1, 0], [2, 0], [3, 0], [3, 1], [3, 2], [3, 3], [1, 3], [2, 3]]
     
-    #começa o contador pelas primeiras possíveis posicões onde se pode colocar uma figura de um certo tamanho
-    if tamanho==4:
+    # Começa o contador pelas primeiras possíveis posições onde se pode colocar uma figura de um certo tamanho
+    if tamanho == 4:
         for z in range(len(inicio_4)):
-            contador=verifica_concorencia(inicio_4[z][0],inicio_4[z][1],"0")
-            contador+=verifica_sitio_peca_maxima(inicio_4[z][0],inicio_4[z][1])
-        posicao=inicio_4
-    elif tamanho==8:
+            contador = verifica_concorencia(inicio_4[z][0], inicio_4[z][1], "0")
+            contador += verifica_sitio_peca_maxima(inicio_4[z][0], inicio_4[z][1])
+        posicao = inicio_4
+    elif tamanho == 8:
         for z in range(len(inicio_8)):
-            contador=verifica_concorencia(inicio_8[z][0],inicio_8[z][1],"0")
-            contador+=verifica_sitio_peca_maxima(inicio_8[z][0],inicio_8[z][1])
-        posicao=inicio_8
+            contador = verifica_concorencia(inicio_8[z][0], inicio_8[z][1], "0")
+            contador += verifica_sitio_peca_maxima(inicio_8[z][0], inicio_8[z][1])
+        posicao = inicio_8
     else:
         for z in range(len(inicio_12)):
-            contador=verifica_concorencia(inicio_12[z][0],inicio_12[z][1],"0")
-            contador+=verifica_sitio_peca_maxima(inicio_12[z][0],inicio_12[z][1])
-        posicao=inicio_12
-    #guardamos o contador num contador auxiliar
-    contador_aux=contador
+            contador = verifica_concorencia(inicio_12[z][0], inicio_12[z][1], "0")
+            contador += verifica_sitio_peca_maxima(inicio_12[z][0], inicio_12[z][1])
+        posicao = inicio_12
+    # Guardamos o contador num contador auxiliar
+    contador_aux = contador
     
     """
-    verificamos agora o resto da posições que podemos verificar. Verificamos para TAMANHO_MATRIZ-(tamanho//4) pois não
-    queremos aceder a casas fora da matriz 5*5,
-    caso o contador seja mais pequenos que o contador auxiliar a posicção e o contador são guardados à epsera para verificas
-    se há uma melhor posição onde ser colocado. 
-    quanto maior o contador pior, o contador imcrementa caso as pecas se situam num lugar de uma peca máxima e onde haja um acumulo de
-    muitas pecas, pois queremos dispersar as pecas o melhor possível
+    Verificamos agora o resto das posições que podemos verificar. Verificamos para TAMANHO_MATRIZ-(tamanho//4) pois não
+    queremos aceder a casas fora da matriz 5*5.
+    Caso o contador seja menor que o contador auxiliar, a posição e o contador são guardados à espera para verificar
+    se há uma melhor posição onde ser colocada. 
+    Quanto maior o contador, pior. O contador incrementa caso as peças se situem num lugar de uma peça máxima e onde haja um acúmulo de
+    muitas peças, pois queremos dispersar as peças o melhor possível.
     """
-    for i in range(TAMANHO_MATRIZ-(tamanho//4)):
-        for j in range(TAMANHO_MATRIZ-(tamanho//4)):
-            if(tamanho==4):
-                contador=(verifica_concorencia(i,j,"0")+
-                          verifica_concorencia(i,j+1,"0")+
-                          verifica_concorencia(i+1,j,"0")+
-                          verifica_concorencia(i+1,j+1,"0"))
-                contador+=(verifica_sitio_peca_maxima(i,j)+
-                          verifica_sitio_peca_maxima(i,j+1)+
-                          verifica_sitio_peca_maxima(i+1,j)+
-                          verifica_sitio_peca_maxima(i+1,j+1))
-                if contador<contador_aux:
-                    contador_aux=contador
-                    posicao=[[i,j],[i,j+1],[i+1,j],[i+1,j+1]]
-            elif(tamanho==8):
-                contador=(verifica_concorencia(i,j,"0")+
-                          verifica_concorencia(i,j+1,"0")+
-                          verifica_concorencia(i,j+2,"0")+
-                          verifica_concorencia(i+1,j,"0")+
-                          verifica_concorencia(i+2,j,"0")+
-                          verifica_concorencia(i+2,j+1,"0")+
-                          verifica_concorencia(i+1,j+2,"0")+
-                          verifica_concorencia(i+2,j+2,"0"))
-                contador+=(verifica_sitio_peca_maxima(i,j)+
-                          verifica_sitio_peca_maxima(i,j+1)+
-                          verifica_sitio_peca_maxima(i,j+2)+
-                          verifica_sitio_peca_maxima(i+1,j)+
-                          verifica_sitio_peca_maxima(i+2,j)+
-                          verifica_sitio_peca_maxima(i+2,j+1)+
-                          verifica_sitio_peca_maxima(i+1,j+2)+
-                          verifica_sitio_peca_maxima(i+2,j+2))
-                if contador<contador_aux:
-                    contador_aux=contador
-                    posicao=[[i,j],[i,j+1],[i,j+2],[i+1,j],[i+2,j],[i+2,j+1],[i+1,j+2],[i+2,j+2]]
-            elif(tamanho==12):
-                contador=(verifica_concorencia(i,j,"0")+
-                          verifica_concorencia(i,j+1,"0")+
-                          verifica_concorencia(i,j+2,"0")+
-                          verifica_concorencia(i,j+3,"0")+
-                          verifica_concorencia(i+1,j,"0")+
-                          verifica_concorencia(i+2,j,"0")+
-                          verifica_concorencia(i+3,j,"0")+
-                          verifica_concorencia(i+2,j+3,"0")+
-                          verifica_concorencia(i+3,j+1,"0")+
-                          verifica_concorencia(i+3,j+2,"0")+
-                          verifica_concorencia(i+3,j+3,"0")+
-                          verifica_concorencia(i+1,j+3,"0"))
-                contador+=(verifica_sitio_peca_maxima(i,j)+
-                          verifica_sitio_peca_maxima(i,j+1)+
-                          verifica_sitio_peca_maxima(i,j+2)+
-                          verifica_sitio_peca_maxima(i,j+3)+
-                          verifica_sitio_peca_maxima(i+1,j)+
-                          verifica_sitio_peca_maxima(i+2,j)+
-                          verifica_sitio_peca_maxima(i+3,j)+
-                          verifica_sitio_peca_maxima(i+2,j+3)+
-                          verifica_sitio_peca_maxima(i+3,j+1)+
-                          verifica_sitio_peca_maxima(i+3,j+2)+
-                          verifica_sitio_peca_maxima(i+3,j+3)+
-                          verifica_sitio_peca_maxima(i+1,j+3))
-                if contador<contador_aux:
-                    contador_aux=contador
-                    posicao=[[i,j],[i,j+1],[i,j+2],[i,j+3],
-                             [i+1,j],[i+2,j],[i+3,j],[i+2,j+3]
-                             [i+3,j+1],[i+3,j+2],[i+3,j+3],[i+1,j+3]]
+    for i in range(TAMANHO_MATRIZ - (tamanho // 4)):
+        for j in range(TAMANHO_MATRIZ - (tamanho // 4)):
+            if tamanho == 4:
+                contador = (verifica_concorencia(i, j, "0") +
+                            verifica_concorencia(i, j + 1, "0") +
+                            verifica_concorencia(i + 1, j, "0") +
+                            verifica_concorencia(i + 1, j + 1, "0"))
+                contador += (verifica_sitio_peca_maxima(i, j) +
+                             verifica_sitio_peca_maxima(i, j + 1) +
+                             verifica_sitio_peca_maxima(i + 1, j) +
+                             verifica_sitio_peca_maxima(i + 1, j + 1))
+                if contador < contador_aux:
+                    contador_aux = contador
+                    posicao = [[i, j], [i, j + 1], [i + 1, j], [i + 1, j + 1]]
+            elif tamanho == 8:
+                contador = (verifica_concorencia(i, j, "0") +
+                            verifica_concorencia(i, j + 1, "0") +
+                            verifica_concorencia(i, j + 2, "0") +
+                            verifica_concorencia(i + 1, j, "0") +
+                            verifica_concorencia(i + 2, j, "0") +
+                            verifica_concorencia(i + 2, j + 1, "0") +
+                            verifica_concorencia(i + 1, j + 2, "0") +
+                            verifica_concorencia(i + 2, j + 2, "0"))
+                contador += (verifica_sitio_peca_maxima(i, j) +
+                             verifica_sitio_peca_maxima(i, j + 1) +
+                             verifica_sitio_peca_maxima(i, j + 2) +
+                             verifica_sitio_peca_maxima(i + 1, j) +
+                             verifica_sitio_peca_maxima(i + 2, j) +
+                             verifica_sitio_peca_maxima(i + 2, j + 1) +
+                             verifica_sitio_peca_maxima(i + 1, j + 2) +
+                             verifica_sitio_peca_maxima(i + 2, j + 2))
+                if contador < contador_aux:
+                    contador_aux = contador
+                    posicao = [[i, j], [i, j + 1], [i, j + 2], [i + 1, j], [i + 2, j], [i + 2, j + 1], [i + 1, j + 2], [i + 2, j + 2]]
+            elif tamanho == 12:
+                contador = (verifica_concorencia(i, j, "0") +
+                            verifica_concorencia(i, j + 1, "0") +
+                            verifica_concorencia(i, j + 2, "0") +
+                            verifica_concorencia(i, j + 3, "0") +
+                            verifica_concorencia(i + 1, j, "0") +
+                            verifica_concorencia(i + 2, j, "0") +
+                            verifica_concorencia(i + 3, j, "0") +
+                            verifica_concorencia(i + 2, j + 3, "0") +
+                            verifica_concorencia(i + 3, j + 1, "0") +
+                            verifica_concorencia(i + 3, j + 2, "0") +
+                            verifica_concorencia(i + 3, j + 3, "0") +
+                            verifica_concorencia(i + 1, j + 3, "0"))
+                contador += (verifica_sitio_peca_maxima(i, j) +
+                             verifica_sitio_peca_maxima(i, j + 1) +
+                             verifica_sitio_peca_maxima(i, j + 2) +
+                             verifica_sitio_peca_maxima(i, j + 3) +
+                             verifica_sitio_peca_maxima(i + 1, j) +
+                             verifica_sitio_peca_maxima(i + 2, j) +
+                             verifica_sitio_peca_maxima(i + 3, j) +
+                             verifica_sitio_peca_maxima(i + 2, j + 3) +
+                             verifica_sitio_peca_maxima(i + 3, j + 1) +
+                             verifica_sitio_peca_maxima(i + 3, j + 2) +
+                             verifica_sitio_peca_maxima(i + 3, j + 3) +
+                             verifica_sitio_peca_maxima(i + 1, j + 3))
+                if contador < contador_aux:
+                    contador_aux = contador
+                    posicao = [[i, j], [i, j + 1], [i, j + 2], [i, j + 3],
+                               [i + 1, j], [i + 2, j], [i + 3, j], [i + 2, j + 3],
+                               [i + 3, j + 1], [i + 3, j + 2], [i + 3, j + 3], [i + 1, j + 3]]
                     
-    #quando descobrirmos a melhor posição podemos inserir na matriz heuristica
+    # Quando descobrirmos a melhor posição, podemos inserir na matriz heurística
     for g in range(len(posicao)):
-        inserir_peca_heuristica(ordem, peca, posicao[g][0],posicao[g][1])
+        inserir_peca_heuristica(ordem, peca, posicao[g][0], posicao[g][1])
 
-#função que escolhe a melhor posicção onde colocar os vezes na matriz heuristica a partir de um contador
+# Função que escolhe a melhor posicção onde colocar os vezes na matriz heuristica a partir de um contador
 def posicao_vezes_heuristica(ordem,peca):
     global matriz_heuristica
-    #começa o contador pelas primeiras possíveis posicões onde se pode colocar a figura
+    # Começa o contador pelas primeiras possíveis posicões onde se pode colocar a figura
     posicao=[[0,0],[1,1],[2,2],[0,2],[2,0]]
     contador=(verifica_concorencia(0,0,"*")+verifica_concorencia(1,1,"*")+
               verifica_concorencia(2,2,"*")+verifica_concorencia(0,2,"*")+
@@ -1444,7 +1448,7 @@ def posicao_vezes_heuristica(ordem,peca):
     contador+=(verifica_sitio_peca_maxima(0,0)+verifica_sitio_peca_maxima(1,1)+
               verifica_sitio_peca_maxima(2,2)+verifica_sitio_peca_maxima(0,2)+
               verifica_sitio_peca_maxima(2,0))
-    #guardamos o contador num contador auxiliar
+    # Guardamos o contador num contador auxiliar
     contador_aux=contador
     
     """
@@ -1464,64 +1468,63 @@ def posicao_vezes_heuristica(ordem,peca):
             contador+=(verifica_sitio_peca_maxima(i,j)+
                       verifica_sitio_peca_maxima(i-1,j-1)+
                       verifica_sitio_peca_maxima(i+1,j+1)+
-                      verifica_sitio_peca_maxima(i-1,j+1)+
-                      verifica_sitio_peca_maxima(i+1,j-1))
+                      verifica_sitio_peca_maxima(i-1,j+1)+verifica_sitio_peca_maxima(i+1,j-1))
             if contador<contador_aux:
                 contador_aux=contador
                 posicao=[[i,j],[i-1,j-1],[i+1,j+1],[i-1,j+1],[i+1,j-1]]
     
-    #quando descobrirmos a melhor posição podemos inserir na matriz heuristica
+    # Quando descobrirmos a melhor posição podemos inserir na matriz heuristica
     for z in range(len(posicao)):
         inserir_peca_heuristica(ordem,peca,posicao[z][0],posicao[z][1])
 
-#função que escolhe a melhor posicção onde colocar os mais na matriz heuristica a partir de um contador
+# Função que escolhe a melhor posicção onde colocar os mais na matriz heuristica a partir de um contador
 def posicao_mais_heuristica(ordem,peca):
     global matriz_heuristica
-    #começa o contador pelas primeiras possíveis posicões onde se pode colocar a figura
+    # Começa o contador pelas primeiras possíveis posicões onde se pode colocar a figura
     posicao=[[1,0],[1,1],[2,1],[0,1],[1,2]]
     contador=(verifica_concorencia(1,0,"+")+verifica_concorencia(1,1,"+")+
-              verifica_concorencia(2,1,"+")+verifica_concorencia(0,1,"+")+
-              verifica_concorencia(1,2,"+"))
+                verifica_concorencia(2,1,"+")+verifica_concorencia(0,1,"+")+
+                verifica_concorencia(1,2,"+"))
     contador+=(verifica_sitio_peca_maxima(1,0)+verifica_sitio_peca_maxima(1,1)+
-              verifica_sitio_peca_maxima(2,1)+verifica_sitio_peca_maxima(0,1)+
-              verifica_sitio_peca_maxima(1,2))
+                verifica_sitio_peca_maxima(2,1)+verifica_sitio_peca_maxima(0,1)+
+                verifica_sitio_peca_maxima(1,2))
     
-     #guardamos o contador num contador auxiliar
+        # Guardamos o contador num contador auxiliar
     contador_aux=contador
     
     """
-    verificamos agora o resto da posições que podemos verificar
-    caso o contador seja mais pequenos que o contador auxiliar a posicção e o contador são guardados à epsera para verificas
+    Verificamos agora o resto da posições que podemos verificar
+    Caso o contador seja mais pequenos que o contador auxiliar a posicção e o contador são guardados à epsera para verificas
     se há uma melhor posição onde ser colocado. 
-    quanto maior o contador pior, o contador imcrementa caso as pecas se situam num lugar de uma peca máxima e onde haja um acumulo de
+    Quanto maior o contador pior, o contador imcrementa caso as pecas se situam num lugar de uma peca máxima e onde haja um acumulo de
     muitas pecas, pois queremos dispersar as pecas o melhor possível
     """
     for i in range(1,TAMANHO_MATRIZ-1):
         for j in range(1,TAMANHO_MATRIZ-1):
             contador=(verifica_concorencia(i,j,"+")+
-                      verifica_concorencia(i-1,j,"+")+
-                      verifica_concorencia(i,j-1,"+")+
-                      verifica_concorencia(i,j+1,"+")+
-                      verifica_concorencia(i+1,j,"+"))
+                        verifica_concorencia(i-1,j,"+")+
+                        verifica_concorencia(i,j-1,"+")+
+                        verifica_concorencia(i,j+1,"+")+
+                        verifica_concorencia(i+1,j,"+"))
             contador+=(verifica_sitio_peca_maxima(i,j)+
-                      verifica_sitio_peca_maxima(i-1,j)+
-                      verifica_sitio_peca_maxima(i,j-1)+
-                      verifica_sitio_peca_maxima(i,j+1)+
-                      verifica_sitio_peca_maxima(i+1,j))
+                        verifica_sitio_peca_maxima(i-1,j)+
+                        verifica_sitio_peca_maxima(i,j-1)+
+                        verifica_sitio_peca_maxima(i,j+1)+
+                        verifica_sitio_peca_maxima(i+1,j))
             if contador<contador_aux:
                 contador_aux=contador
                 posicao=[[i,j],[i-1,j],[i,j-1],[i,j+1],[i+1,j]]
     
-    #quando descobrirmos a melhor posição podemos inserir na matriz heuristica
+    # Quando descobrirmos a melhor posição podemos inserir na matriz heuristica
     for z in range(len(posicao)):
         inserir_peca_heuristica(ordem,peca,posicao[z][0],posicao[z][1])
 
-#função que escolhe a melhor posicção onde colocar os menos na matriz heuristica a partir de um contador
+# Função que escolhe a melhor posicção onde colocar os menos na matriz heuristica a partir de um contador
 def posicao_menos_heuristica(tamanho,ordem,peca):
     global matriz_heuristica
     posicao=[]
     contador=0
-    #começa o contador pelas primeiras possíveis posicões onde se pode colocar uma figura de um certo tamanho
+    # Começa o contador pelas primeiras possíveis posicões onde se pode colocar uma figura de um certo tamanho
     if tamanho==2:
         contador=verifica_concorencia(0,0,"-")+verifica_concorencia(0,1,"-")
         contador+=verifica_sitio_peca_maxima(0,0)+verifica_sitio_peca_maxima(0,1)
@@ -1531,15 +1534,15 @@ def posicao_menos_heuristica(tamanho,ordem,peca):
         contador+=verifica_sitio_peca_maxima(0,0)+verifica_sitio_peca_maxima(0,1)+verifica_sitio_peca_maxima(0,2)
         posicao=[[0,0],[0,1],[0,2]]
         
-    #guardamos o contador num contador auxiliar
+    # Guardamos o contador num contador auxiliar
     contador_aux=contador
     
     """
-    verificamos agora o resto da posições que podemos verificar. Verificamos para TAMANHO_MATRIZ-(tamanho) pois não
+    Verificamos agora o resto da posições que podemos verificar. Verificamos para TAMANHO_MATRIZ-(tamanho) pois não
     queremos aceder a casas fora da matriz 5*5,
-    caso o contador seja mais pequenos que o contador auxiliar a posicção e o contador são guardados à epsera para verificas
+    Caso o contador seja mais pequenos que o contador auxiliar a posicção e o contador são guardados à epsera para verificas
     se há uma melhor posição onde ser colocado. 
-    quanto maior o contador pior, o contador imcrementa caso as pecas se situam num lugar de uma peca máxima e onde haja um acumulo de
+    Quanto maior o contador pior, o contador imcrementa caso as pecas se situam num lugar de uma peca máxima e onde haja um acumulo de
     muitas pecas, pois queremos dispersar as pecas o melhor possível
     """
     for i in range(TAMANHO_MATRIZ):
@@ -1559,11 +1562,11 @@ def posicao_menos_heuristica(tamanho,ordem,peca):
                 else:
                     posicao=[[i,j],[i,j+1],[i,j+2]]
     
-    #quando descobrirmos a melhor posição podemos inserir na matriz heuristica
+    # Quando descobrirmos a melhor posição podemos inserir na matriz heuristica
     for z in range(len(posicao)):
         inserir_peca_heuristica(ordem,peca,posicao[z][0],posicao[z][1])
 
-#caso a peca seja do mesmo tipo das pecas maximas inserimos em coordenadas onde ficarão parte das pessas máximas para melhor eficiencia
+# Caso a peca seja do mesmo tipo das pecas maximas inserimos em coordenadas onde ficarão parte das peças máximas para melhor eficiencia
 def peca_tipo_maior(ordem, peca):
     global matriz_heuristica
     
@@ -1596,7 +1599,7 @@ def peca_tipo_maior(ordem, peca):
                 inserir_peca_heuristica(ordem,peca,bolas_lado,i)
                 inserir_peca_heuristica(ordem,peca,i,bolas_lado)
 
-#preenche a matriz heuristica com figuras maximas, ou seja aquelas que nao tem outras escolahs de posições(bola de 16 e x e + de 9)
+# Preenche a matriz heuristica com figuras maximas, ou seja aquelas que nao tem outras escolahs de posições(bola de 16 e x e + de 9)
 def preenche_matriz_heuristica_maximo(maximo):
     global matriz_heuristica
     if "0"==maximo[1]:
@@ -1619,7 +1622,7 @@ def preenche_matriz_heuristica_maximo(maximo):
                     matriz_heuristica[i][j].append(maximo)
     return 0
 
-#preenche a matriz heurisitca toda com a ordem das figuras que serão feitas
+# Preenche a matriz heurisitca toda com a ordem das figuras que serão feitas
 def posicao_pecas():
     global pecas, matriz_heuristica, pecas_maximas
 
@@ -1630,33 +1633,33 @@ def posicao_pecas():
     
     guarda_aux=[]
     
-    #recebe a melhor esolha para o array pecas
+    # Recebe a melhor esolha para o array pecas
     ordem=melhor_escolha()
     
-    # primeiro insere na matriz heuristica as pecas máximas->(bola de 16/ + e x de 9)
+    # Primeiro insere na matriz heuristica as pecas máximas->(bola de 16/ + e x de 9)
     for i in range(len(ordem)):
         if ordem[i][0] in [16,9]:
             preenche_matriz_heuristica_maximo(ordem[i])
-            #adiciona a posição e a ordem do array que ja foi visitado
+            # Adiciona a posição e a ordem do array que ja foi visitado
             posicao_peca_maior.append(i)
             posicoes_visitadas.append(i)
             if ordem[i][1] not in pecas_maiores_tipo:
-                #adiciona as pecas maiores e o tipo de peca de cada figura
+                # Adiciona as pecas maiores e o tipo de peca de cada figura
                 pecas_maiores_tipo.append(ordem[i][1])
                 pecas_maiores.append(ordem[i])
     
-    #guarda variaveis que serão precisas os valores anteriores
+    # Guarda variaveis que serão precisas os valores anteriores
     guarda_aux=pecas_maiores.copy()
     guarda_aux_posicao=posicao_peca_maior.copy()
     
-    # pecas mesmo tipo 
+    # Pecas mesmo tipo 
     for z in range(len(ordem)):
         if z not in posicoes_visitadas:
-            #caso a posição do array seja maior que a posição da figura maxima atula este remove a posição atual e segue para a proxima
+            # Caso a posição do array seja maior que a posição da figura maxima atula este remove a posição atual e segue para a proxima
             if z>posicao_peca_maior[0]:
                 pecas_maiores.pop(0)
                 posicao_peca_maior.pop(0)
-            #adiciona à matrix heuristica as pecas que são do mesmo tipo das maximas e adicina a posiçaõ do array às posições visitadas
+            # Adiciona à matrix heuristica as pecas que são do mesmo tipo das maximas e adicina a posiçaõ do array às posições visitadas
             if ordem[z] not in pecas_maiores:
                 if ordem[z][1] in pecas_maiores_tipo:
                     for k in range(len(pecas_maiores_tipo)):
@@ -1664,15 +1667,15 @@ def posicao_pecas():
                             peca_tipo_maior(ordem[z], pecas_maiores)
                             posicoes_visitadas.append(z)
 
-    #os valores voltam ao normal e são guardados
+    # Os valores voltam ao normal e são guardados
     pecas_maiores=guarda_aux
     pecas_maximas=pecas_maiores.copy()
     posicao_peca_maior=guarda_aux_posicao
     
-    #as outras pecas         
+    # As outras pecas         
     for j in range(len(ordem)):
         if j not in posicoes_visitadas:
-            #verifica a posição, caso tenha passado uma posição de uma peca maxima esta é removida do array de posições e a figura tambem é removida
+            # Verifica a posição, caso tenha passado uma posição de uma peca maxima esta é removida do array de posições e a figura tambem é removida
             if len(posicao_peca_maior)>0:
                 while 1:
                     if(j>posicao_peca_maior[0]):
@@ -1680,11 +1683,11 @@ def posicao_pecas():
                         posicao_peca_maior.pop(0)
                     else:
                         break
-                    #caso não hajam pecas_maiores é dado um valor ficticio para que seja inserido no final do array de uma posição da matriz heuristica
+                    # Caso não hajam pecas_maiores é dado um valor ficticio para que seja inserido no final do array de uma posição da matriz heuristica
                     if pecas_maiores==[]:
                         pecas_maiores.append([20,"-"])
                         break
-            #dependedo do tipo será adicionado na matriz heuristica
+            # Dependedo do tipo será adicionado na matriz heuristica
             if ordem[j][1]=="-":
                 posicao_menos_heuristica(ordem[j][0],ordem[j],pecas_maiores)
             elif ordem[j][1]=="+":
@@ -1697,7 +1700,7 @@ def posicao_pecas():
     return ordem
 
 
-#Funções para Heuristica de menos de 25 peças
+# Funções para Heuristica de menos de 25 peças
 
 #Função que conta o número de peças de uma dada peça
 def numero_pecas_dadas(peca):
@@ -1715,124 +1718,93 @@ def numero_pecas_dadas(peca):
                 
     return contador
 
+# Contador de uma certa peça antes de acabar a figura do x
 def conta_x_25(peca, pecas_figura):
     global pecas
     contador = 0
     contador_x = 0
 
-    if len(pecas) <= 25:
-        for peca_i in pecas:
-            if peca_i == peca:
-                contador += 1
-            if peca_i == "*":
-                contador_x += 1
-            if contador_x == pecas_figura:
-                break
-    else:
-        for i in range(len(pecas)):
-            if pecas[i] == peca:
-                contador += 1
-            if pecas[i] == "*":
-                contador_x += 1
-            if contador_x == pecas_figura:
-                break
+    for peca_i in pecas:
+        if peca_i == peca:
+            contador += 1
+        if peca_i == "*":
+            contador_x += 1
+        if contador_x == pecas_figura:
+            break
                     
     return contador
 
+# Contador de uma certa peça antes de acabar a figura do mais
 def conta_mais_25(peca, pecas_figura):
     global pecas
     contador = 0
     contador_x = 0
 
-    if len(pecas) <= 25:
-        for peca_i in pecas:
-            if peca_i == peca:
-                contador += 1
-            if peca_i == "+":
-                contador_x += 1
-            if contador_x == pecas_figura:
-                break
-    else:
-        for i in range(len(pecas)):
-            if pecas[i] == peca:
-                contador += 1
-            if pecas[i] == "+":
-                contador_x += 1
-            if contador_x == pecas_figura:
-                break
+    for peca_i in pecas:
+        if peca_i == peca:
+            contador += 1
+        if peca_i == "+":
+            contador_x += 1
+        if contador_x == pecas_figura:
+            break
                     
     return contador
 
+# Contador de uma certa peça antes de acabar a figura do menos
 def conta_menos_25 (peca, pecas_figura):
     global pecas
     contador = 0
     contador_menos = 0
 
-    if len(pecas) <= 25:
-        for peca_i in pecas:
-            if peca_i == peca:
-                contador += 1
-            if peca_i == "-":
-                contador_menos += 1
-            if contador_menos == pecas_figura:
-                break
-    else:
-        for i in range(len(pecas)):
-            if pecas[i] == peca:
-                contador += 1
-            if pecas[i] == "-":
-                contador_menos += 1
-            if contador_menos == pecas_figura:
-                break
+    for peca_i in pecas:
+        if peca_i == peca:
+            contador += 1
+        if peca_i == "-":
+            contador_menos += 1
+        if contador_menos == pecas_figura:
+            break
                     
     return contador
 
+# Contador de uma certa peça antes de acabar a figura da bola
 def conta_bola_25 (peca, pecas_figura):
     global pecas
     contador = 0
-    contador_menos = 0
+    contador_bola = 0
 
-    if len(pecas) <= 25:
-        for peca_i in pecas:
-            if peca_i == peca:
-                contador += 1
-            if peca_i == "0":
-                contador_menos += 1
-            if contador_menos == pecas_figura:
-                break
-    else:
-        for i in range(len(pecas)):
-            if pecas[i] == peca:
-                contador += 1
-            if pecas[i] == "0":
-                contador_menos += 1
-            if contador_menos == pecas_figura:
-                break
+    for peca_i in pecas:
+        if peca_i == peca:
+            contador += 1
+        if peca_i == "0":
+            contador_bola += 1
+        if contador_bola == pecas_figura:
+            break
                     
     return contador
 
-#Função para colocar as peças no tabuleiro seguindo a heuristica simples
+# Heuristica simples ara todas as peças pequenas
 def heuristica_simples(pecas_bola, pecas_mais, pecas_menos, pecas_x):
     global pecas, pontos, posicoes_bola4, posicoes_bola8, posicoes_x9, posicoes_x5, posicoes_mais5, posicoes_mais9, posicoes_menos3, posicoes_menos2
 
-    #Variaveis que guardam o número que existe de cada peça
+    # Número de peças de cada tipo
     pecas_bola = pecas_bola
     pecas_mais = pecas_mais
     pecas_menos = pecas_menos
     pecas_x = pecas_x
 
-    #Variaveis que guardam qual a coordenada atual que está do array de posições
+    # Usado para peercorrer o array de posições definido para cada figura
     indexBola = 0
+    indexX = 0
     indexMais = 0
     indexMenos = 0
 
-    #Variavel para saber quantas peças de cada foram postas
+    # Número de peças colocadas de cada tipo
     menos_colocadas = 0
     bolas_colocadas = 0
     x_colocadas = 0
     mais_colocadas = 0
 
-    #Vê cada peça do array e coloca na posição dada pelo aray de posições de cada tipo de peça
+    # Percorre as peças e coloca na matriz de jogo utilizando as coordenadas já definidas, depois de colocar a figura inteira o index volta a 0
     for peca in pecas:
             if peca == "0":
                 coloca_peca(peca, posicoes_bola4[indexBola][0], posicoes_bola4[indexBola][1])
@@ -1876,32 +1848,35 @@ def heuristica_simples(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                         pontos += 2**2
                         pecas_menos -= 2
 
-#Função para as posições para fazer a bola de 8 peças
+# Heuristica para bola de 8 peças
 def heuristica_bola3(pecas_bola, pecas_mais, pecas_menos, pecas_x):
     global pecas, pontos, posicoes_bola4, posicoes_bola8, posicoes_x9, posicoes_x5, posicoes_mais5, posicoes_mais9, posicoes_menos3, posicoes_menos2
 
+    # Número de peças de cada tipo
     pecas_bola = pecas_bola
     pecas_mais = pecas_mais
     pecas_menos = pecas_menos
     pecas_x = pecas_x
 
+    # Usado para peercorrer o array de posições definido para cada figura
     indexBola = 0
     indexX = 0
     indexMais = 0
     indexMenos = 0
 
+    # Número de peças colocadas de cada tipo
     menos_colocadas = 0
     menos_ordem = 0
     bolas_colocadas = 0
     x_colocadas = 0
     mais_colocadas = 0
 
-    #Se cumprir com estas condições
+    # Consegue fazer um mais de 5 e um x de 5 se tiver so 6 bolas ou menos antes de fazer essa figuras
     if (pecas_mais>=5 and pecas_x>=5 and (conta_mais_25("0",5)<=6 and conta_x_25("0",5)<=6)):
 
         posicoes_bola8 = [(3,2),(2,1),(1,1),(1,2),(1,3),(2,3),(3,3),(3,1)] 
 
-        #Põe as peças para estas posições dos arrays
+        # Percorre as peças e coloca na matriz de jogo utilizando as coordenadas já definidas, depois de colocar a figura inteira o index volta a 0
         for peca in pecas:
             if peca == "0":
                 coloca_peca(peca, posicoes_bola8[indexBola][0], posicoes_bola8[indexBola][1])
@@ -1960,14 +1935,14 @@ def heuristica_bola3(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                         pecas_menos -= 2
                         menos_ordem += 2
             
-    #Caso cumpra para estas condições 
+    # Consegue fazer um mais de 5
     elif(pecas_mais>=5 and pecas_x<5):
 
             posicoes_bola8 = [(3,2),(2,1),(1,1),(1,2),(1,3),(3,3),(3,1),(2,3)] 
 
             posicoes_x = [(5,1),(5,3),(4,2),(5,2),(4,1)]
-
-            #Põe para estas posições dos arrays
+            
+            # Percorre as peças e coloca na matriz de jogo utilizando as coordenadas já definidas, depois de colocar a figura inteira o index volta a 0
             for peca in pecas:
                 if peca == "0":
                     coloca_peca(peca, posicoes_bola8[indexBola][0], posicoes_bola8[indexBola][1])
@@ -2023,7 +1998,7 @@ def heuristica_bola3(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                             pecas_menos -= 2
                             menos_ordem += 2
                 
-    #Se cumprir para estas condições
+    # Consegue fazer um x de 5
     elif(pecas_x>=5 and pecas_mais<5):
 
         posicoes_bola8 = [(3,2),(2,1),(1,1),(1,2),(1,3),(2,3),(3,3),(3,1)] 
@@ -2034,7 +2009,7 @@ def heuristica_bola3(pecas_bola, pecas_mais, pecas_menos, pecas_x):
         posicoes_menos2 = [(5,1),(5,2)]
         posicoes_menos3 = [(4,3),(4,1),(4,2)]
 
-        #Põe para estas posições dos arrays 
+        # Percorre as peças e coloca na matriz de jogo utilizando as coordenadas já definidas, depois de colocar a figura inteira o index volta a 0
         for peca in pecas:
             if peca == "0":
                 coloca_peca(peca, posicoes_bola8[indexBola][0], posicoes_bola8[indexBola][1])
@@ -2075,7 +2050,7 @@ def heuristica_bola3(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                         pontos += 2**2
                         pecas_menos -= 2
 
-    #Se não cumpre para nenhuma   
+    # Se não conseguir fazer nenhum dos dois faz so os menos possíveis
     else:
 
         posicoes_bola8 = [(3,2),(2,1),(1,1),(1,2),(1,3),(3,3),(3,1),(2,3)] 
@@ -2083,7 +2058,8 @@ def heuristica_bola3(pecas_bola, pecas_mais, pecas_menos, pecas_x):
         posicoes_x = [(5,1),(5,3),(4,2),(5,2)]
         posicoes_mais = [(5,4),(4,5),(5,5),(3,5)]
 
-        #Põe para estas posições dos arrays 
+
+        # Percorre as peças e coloca na matriz de jogo utilizando as coordenadas já definidas, depois de colocar a figura inteira o index volta a 0
         for peca in pecas:
             if peca == "0":
                 coloca_peca(peca, posicoes_bola8[indexBola][0], posicoes_bola8[indexBola][1])
@@ -2136,27 +2112,30 @@ def heuristica_bola3(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                         pecas_menos -= 2
                         menos_ordem += 2
 
-#Função para as posições das peças caso faça para a bola de 12 peças 
+# Heuristica para bola de 12 peças
 def heuristica_bola4(pecas_bola, pecas_mais, pecas_menos, pecas_x):
     global pecas, pontos, posicoes_bola4, posicoes_bola8, posicoes_x9, posicoes_x5, posicoes_mais5, posicoes_mais9, posicoes_menos3, posicoes_menos2
 
+    # Número de peças de cada tipo
     pecas_bola = pecas_bola
     pecas_mais = pecas_mais
     pecas_menos = pecas_menos
     pecas_x = pecas_x
 
+    # Usado para peercorrer o array de posições definido para cada figura
     indexBola = 0
     indexX = 0
     indexMais = 0
     indexMenos = 0
 
+    # Número de peças colocadas de cada tipo
     menos_colocadas = 0
     menos_ordem = 0
     bolas_colocadas = 0
     x_colocadas = 0
     mais_colocadas = 0
 
-    #Se cumpre estas condições
+    # Consegue fazer um x de 9 se tiver so 8 ou menos bolas antes de fazer essa figura
     if(pecas_x>=9 and conta_x_25("0",9)<=8): 
 
         posicoes_bola12 = [(1,2),(1,4),(2,1),(3,1),(4,1),(4,3),(3,4),(4,4),(4,2),(1,1),(2,4),(1,3)]
@@ -2165,7 +2144,7 @@ def heuristica_bola4(pecas_bola, pecas_mais, pecas_menos, pecas_x):
         posicoes_menos2 = [(5,2),(5,3)]
         posicoes_mais = [(2,5),(3,5),(4,5)]
 
-        #Põe para estas posições dos arrays
+        # Percorre as peças e coloca na matriz de jogo utilizando as coordenadas já definidas, depois de colocar a figura inteira o index volta a 0
         for peca in pecas:
             if peca == "0":
                 coloca_peca(peca, posicoes_bola12[indexBola][0], posicoes_bola12[indexBola][1])
@@ -2206,7 +2185,7 @@ def heuristica_bola4(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                         pontos += 2**2
                         pecas_menos -= 2
             
-    #Se cumpre com estas condições
+    # Consegue fazer um mais de 9 se tiver so 8 ou menos bolas antes de fazer essa figura
     elif(pecas_mais>=9 and conta_mais_25("0",9)<=8):
 
         posicoes_bola12 = [(1,1),(1,2),(1,4),(2,1),(4,1),(4,2),(2,4),(4,4),(3,4),(1,3),(3,1),(4,3)]
@@ -2246,7 +2225,7 @@ def heuristica_bola4(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                     pontos += 2**1
                     pecas_menos -= 2
             
-    #Caso cumpra para estas condições
+    # Consegue fazer um mais de 5 e um x de 5 se tiver so 7 ou menos bolas antes de fazer essas figuras
     elif(pecas_mais>=5 and pecas_x>=5 and (conta_mais_25("0",5)<=7 and conta_x_25("0",5)<=7)):
 
         posicoes_bola12 = [(1,1),(1,2),(1,3),(1,4),(2,1),(4,1),(2,4),(3,1),(3,4),(4,4),(4,3),(4,2)] 
@@ -2254,7 +2233,7 @@ def heuristica_bola4(pecas_bola, pecas_mais, pecas_menos, pecas_x):
         posicoes_menos3 = [(2,2),(2,4),(2,3)]
         posicoes_menos2 = [(2,2),(2,3)]
 
-        #Faz para estas posições
+        # Percorre as peças e coloca na matriz de jogo utilizando as coordenadas já definidas, depois de colocar a figura inteira o index volta a 0
         for peca in pecas:
             if peca == "0":
                 coloca_peca(peca, posicoes_bola12[indexBola][0], posicoes_bola12[indexBola][1])
@@ -2313,7 +2292,7 @@ def heuristica_bola4(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                         pecas_menos -= 2
                         menos_ordem += 2
             
-    #Se cumprir estas condições 
+    # Consegue fazer um x de 5
     elif(pecas_x>=5):
 
         posicoes_bola12 = [(1,1),(1,2),(1,3),(1,4),(2,1),(3,1),(4,1),(2,4),(3,4),(4,2),(4,3),(4,4)]
@@ -2324,7 +2303,7 @@ def heuristica_bola4(pecas_bola, pecas_mais, pecas_menos, pecas_x):
         posicoes_menos3 = [(2,2),(2,4),(2,3)]
         posicoes_menos2 = [(2,2),(2,3)]
 
-        #Faz para estas posições
+        # Percorre as peças e coloca na matriz de jogo utilizando as coordenadas já definidas, depois de colocar a figura inteira o index volta a 0
         for peca in pecas:
             if peca == "0":
                 coloca_peca(peca, posicoes_bola12[indexBola][0], posicoes_bola12[indexBola][1])
@@ -2380,7 +2359,7 @@ def heuristica_bola4(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                         pecas_menos -= 2
                         menos_ordem += 2
             
-    #Se cumprir com estas condições
+    # Consegue fazer um mais de 5 se tiver so 10 bolas ou menos antes de fazer essa figura
     elif(pecas_mais>=5 and conta_mais_25("0",5)<=10):
         
         posicoes_bola12 = [(1,1),(1,2),(1,3),(1,4),(2,1),(3,1),(4,1),(2,4),(4,2),(4,4),(4,3),(3,4)]
@@ -2390,7 +2369,7 @@ def heuristica_bola4(pecas_bola, pecas_mais, pecas_menos, pecas_x):
         posicoes_menos3 = [(5,1),(5,3),(5,2)]
         posicoes_menos2 = [(5,1),(5,2)]
 
-        #Faz para estas posições
+        # Percorre as peças e coloca na matriz de jogo utilizando as coordenadas já definidas, depois de colocar a figura inteira o index volta a 0
         for peca in pecas:
             if peca == "0":
                 coloca_peca(peca, posicoes_bola12[indexBola][0], posicoes_bola12[indexBola][1])
@@ -2431,8 +2410,9 @@ def heuristica_bola4(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                         pontos += 2**2
                         pecas_menos -= 2
             
-    #Se não cumprir com nenhuma condições
+    # Se não conseguir fazer nenhum dos dois
     else:
+        # Se tiver pelo menos uma figura de menos
         if(pecas_menos>=2):
 
             posicoes_bola12 = [(1,1),(1,2),(1,3),(1,4),(2,1),(3,1),(4,1),(3,4),(4,4),(4,3),(4,2),(2,4)]
@@ -2443,7 +2423,7 @@ def heuristica_bola4(pecas_bola, pecas_mais, pecas_menos, pecas_x):
             posicoes_menos3 = [(2,5),(2,3),(2,4)]
             posicoes_menos2 = [(2,2),(2,3)]
 
-            #Faz para estas posições
+            # Percorre as peças e coloca na matriz de jogo utilizando as coordenadas já definidas, depois de colocar a figura inteira o index volta a 0
             for peca in pecas:
                 if peca == "0":
                     coloca_peca(peca, posicoes_bola12[indexBola][0], posicoes_bola12[indexBola][1])
@@ -2480,30 +2460,35 @@ def heuristica_bola4(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                             indexMenos = 0
                             pontos += 2**2
                             pecas_menos -= 2
-                
+        
+        # Se não tiver nenhuma figura de menos faz a bola de 8
         else:
             heuristica_bola3()
 
-#Função para fazer a bola de 16 peças
+# Heuristica para bola de 16 peças
 def heuristica_bola5(pecas_bola, pecas_mais, pecas_menos, pecas_x):
     global pecas, pontos, posicoes_bola4, posicoes_bola8, posicoes_x9, posicoes_x5, posicoes_mais5, posicoes_mais9, posicoes_menos3, posicoes_menos2
 
+    # Número de peças de cada tipo
     pecas_bola = pecas_bola
     pecas_mais = pecas_mais
     pecas_menos = pecas_menos
     pecas_x = pecas_x
 
+    # Usado para peercorrer o array de posições definido para cada figura
     indexBola = 0
     indexX = 0
     indexMais = 0
     indexMenos = 0
 
+    # Número de peças colocadas de cada tipo e ordem 
     menos_colocadas = 0
     menos_ordem = 0
     bolas_colocadas = 0
     x_colocadas = 0
     mais_colocadas = 0
 
+    # Peças no início da heurística
     pecas_x_inicio = pecas_x
     pecas_mais_inicio = pecas_mais
 
@@ -2519,7 +2504,7 @@ def heuristica_bola5(pecas_bola, pecas_mais, pecas_menos, pecas_x):
     posicoes_menos_x = [(4,3),(3,4),(3,2)]
     posicoes_menos_x_mais = [(3,3),(4,3),(4,4)]
 
-    #Faz para estas posições
+    # Percorre as peças e coloca na matriz de jogo utilizando as coordenadas já definidas, depois de colocar a figura inteira o index volta a 0
     for peca in pecas:
         if peca == "0":
             coloca_peca(peca, posicoes_bola16[indexBola][0], posicoes_bola16[indexBola][1])
@@ -2547,11 +2532,13 @@ def heuristica_bola5(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                 pontos += 2**5
         if peca == "-":
 
+            # Se tiver mais de 2 peças de menos
             if(pecas_menos>2):
 
                 bolas_antes_menos3 = conta_menos_25("0",3+menos_ordem)
                 bolas_antes_menos2 = conta_menos_25("0",2+menos_ordem)
 
+                # Se tiver menos de 14 bolas antes de fazer a figura de 3
                 if(bolas_antes_menos3 <= 13):
                     coloca_peca(peca, posicoes_menos3[indexMenos][0], posicoes_menos3[indexMenos][1])
                     indexMenos += 1
@@ -2561,6 +2548,7 @@ def heuristica_bola5(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                         pontos += 2**3
                         pecas_menos -= 3
                         menos_ordem += 3
+                # Se tiver menos de 14 bolas antes de fazer a figura de 2
                 elif(bolas_antes_menos2 <= 14):
                     coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
                     indexMenos += 1
@@ -2570,19 +2558,23 @@ def heuristica_bola5(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                         pontos += 2**2
                         pecas_menos -= 2
                         menos_ordem += 2
+                # Se tiver mais de 14 bolas antes de fazer a figura de 2 ou 3
                 else:
+                    # Se tiver mais de 5 peças de x
                     if(pecas_x_inicio>=5):
                         coloca_peca(peca, posicoes_menos_x[indexMenos][0], posicoes_menos_x[indexMenos][1]) 
                         indexMenos += 1
                         pecas_menos -= 1
                         menos_colocadas += 1
                         menos_ordem += 1
+                    # Se tiver mais de 5 peças de mais
                     elif(pecas_mais_inicio>=5):
                         coloca_peca(peca, posicoes_menos_mais[indexMenos][0], posicoes_menos_mais[indexMenos][1]) 
                         indexMenos += 1
                         pecas_menos -= 1
                         menos_colocadas += 1
                         menos_ordem += 1
+                    # Se tiver menos de 5 peças de x e mais
                     else:
                         coloca_peca(peca, posicoes_menos_x_mais[indexMenos][0], posicoes_menos_x_mais[indexMenos][1]) 
                         indexMenos += 1
@@ -2590,10 +2582,12 @@ def heuristica_bola5(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                         menos_colocadas += 1
                         menos_ordem += 1
 
+            # Se não tiver mais de 2 peças de menos
             else:
 
                 bolas_antes_menos = conta_menos_25("0",2+menos_colocadas)
 
+                # Se tiver menos de 14 bolas antes de fazer a figura de 2
                 if(bolas_antes_menos <= 14):
                     coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
                     indexMenos += 1
@@ -2602,37 +2596,44 @@ def heuristica_bola5(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                         indexMenos = 0
                         pecas_menos -= 2
                         menos_ordem += 2
+                # Se tiver mais de 14 bolas antes de fazer a figura de 2
                 else:
+                    # Se tiver mais de 5 peças de x
                     if(pecas_x_inicio>=5):
                         coloca_peca(peca, posicoes_menos_x[indexMenos][0], posicoes_menos_x[indexMenos][1]) 
                         indexMenos += 1
                         menos_colocadas += 1
                         menos_ordem += 1
+                    ## Se tiver mais de 5 peças de mais
                     elif(pecas_mais_inicio>=5):
                         coloca_peca(peca, posicoes_menos_mais[indexMenos][0], posicoes_menos_mais[indexMenos][1]) 
                         indexMenos += 1
                         menos_colocadas += 1
                         menos_ordem += 1
+                    # Se tiver menos de 5 peças de x e mais
                     else:
                         coloca_peca(peca, posicoes_menos_x_mais[indexMenos][0], posicoes_menos_x_mais[indexMenos][1]) 
                         indexMenos += 1
                         menos_colocadas += 1
                         menos_ordem += 1
 
-#Função para decidir os lugares das peças no tabuleiro para fazer o mais de 9 peças
+# Heuristica para + de 9 peças
 def heuristica_mais9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
     global pecas, pontos, posicoes_bola4, posicoes_bola8, posicoes_x9, posicoes_x5, posicoes_mais5, posicoes_mais9, posicoes_menos3, posicoes_menos2
 
+    # Número de peças de cada tipo
     pecas_bola = pecas_bola
     pecas_mais = pecas_mais
     pecas_menos = pecas_menos
     pecas_x = pecas_x
 
+    # Usado para peercorrer o array de posições definido para cada figura
     indexBola = 0
     indexX = 0
     indexMais = 0
     indexMenos = 0
 
+    # Número de peças colocadas de cada tipo e ordem
     menos_colocadas = 0
     menos_ordem = 0
     bolas_colocadas = 0
@@ -2640,6 +2641,7 @@ def heuristica_mais9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
     x_colocadas = 0
     mais_colocadas = 0
 
+    # Consegue fazer um x de 9
     if(pecas_x>=9):
 
         posicoes_x9 = [(5,5),(5,1),(4,4),(4,2),(2,4),(1,5),(2,2),(1,1),(3,3)]
@@ -2653,10 +2655,11 @@ def heuristica_mais9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
 
         x_antes_bola = conta_bola_25("*",4)
 
-        #Faz para estas posições
+        # Percorre as peças e coloca na matriz de jogo utilizando as coordenadas já definidas, depois de colocar a figura inteira o index volta a 0
         for peca in pecas:
             if peca == "0":
 
+                # Se tiver menos de 7 peças de x antes de fazer a figura de 4
                 if(x_antes_bola<=6):
                     coloca_peca(peca, posicoes_bola4[indexBola][0], posicoes_bola4[indexBola][1])
                     indexBola += 1
@@ -2667,6 +2670,7 @@ def heuristica_mais9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                         pontos += 2**4
                         pecas_bola -= 4
                         bolas_ordem += 4
+                # Se tiver mais de 7 peças de x antes de fazer a figura de 4
                 else:
                     coloca_peca(peca, posicoes_bola_x[indexBola][0], posicoes_bola_x[indexBola][1])
                     indexBola += 1
@@ -2691,11 +2695,13 @@ def heuristica_mais9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                     pontos += 2**9
             if peca == "-":
 
+                # Se tiver mais de 2 peças de menos
                 if(pecas_menos>2):
 
                     mais_antes_menos3 = conta_menos_25("+",3+menos_ordem)
                     x_antes_menos2 = conta_menos_25("*",2+menos_ordem)
 
+                    # Se tiver menos de 7 peças de mais antes de fazer a figura de 3
                     if(mais_antes_menos3 <= 7):
                         coloca_peca(peca, posicoes_menos3[indexMenos][0], posicoes_menos3[indexMenos][1])
                         indexMenos += 1
@@ -2705,6 +2711,7 @@ def heuristica_mais9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                             pontos += 2**3
                             pecas_menos -= 3
                             menos_ordem += 3
+                    # Se tiver menos de 5 peças de x antes de fazer a figura de 2
                     elif(x_antes_menos2 <= 5):
                         coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
                         indexMenos += 1
@@ -2714,6 +2721,7 @@ def heuristica_mais9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                             pontos += 2**2
                             pecas_menos -= 2
                             menos_ordem += 2
+                    # Se tiver mais de 5 peças de x e mais antes de fazer a figura de 2 ou 3
                     else:
                         coloca_peca(peca, posicoes_menos_x_mais[indexMenos][0], posicoes_menos_x_mais[indexMenos][1]) 
                         indexMenos += 1
@@ -2721,10 +2729,12 @@ def heuristica_mais9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                         menos_colocadas += 1
                         menos_ordem += 1
 
+                # Se não tiver mais de 2 peças de menos
                 else:
 
                     bolas_antes_menos = conta_menos_25("0",2+menos_ordem)
 
+                    # Se tiver menos de 15 bolas antes de fazer a figura de 2
                     if(bolas_antes_menos <= 14):
                         coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
                         indexMenos += 1
@@ -2734,6 +2744,7 @@ def heuristica_mais9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                             pontos += 2**2
                             pecas_menos -= 2
                             menos_ordem += 2
+                    # Se tiver mais de 15 bolas antes de fazer a figura de 2
                     else:
                         coloca_peca(peca, posicoes_menos_x_mais[indexMenos][0], posicoes_menos_x_mais[indexMenos][1]) 
                         indexMenos += 1
@@ -2741,14 +2752,14 @@ def heuristica_mais9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                         menos_colocadas += 1
                         menos_ordem += 1
             
-    #Se cumprir com estas condições
+    # Consegue fazer uma bola de 8 e um x de 5 se tiver menos de 2 x antes de fazer essas figuras
     elif(pecas_bola>=8 and pecas_x>=5 and (conta_bola_25("+",8)<=2 and conta_x_25("+",5)<=2)):
 
         posicoes_mais9 = [(3,4),(4,3),(3,5),(5,3),(1,3),(2,3),(3,1),(3,2),(3,3)]
         posicoes_bola8 = [(1,1),(1,2),(2,1),(1,3),(3,2),(3,1),(3,3),(2,3)]
         posicoes_x5 = [(5,5),(5,3),(4,4),(3,5),(3,3)]
 
-        #Faz para estas posições
+        # Percorre as peças e coloca na matriz de jogo utilizando as coordenadas já definidas, depois de colocar a figura inteira o index volta a 0
         for peca in pecas:
             if peca == "0":
                 coloca_peca(peca, posicoes_bola8[indexBola][0], posicoes_bola8[indexBola][1])
@@ -2778,10 +2789,12 @@ def heuristica_mais9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                     pontos += 2**9
             if peca == "-":
 
+                # Se tiver mais de 2 peças de menos
                 if(pecas_menos>2):
 
                     bola_antes_menos3 = conta_menos_25("0",3+menos_ordem)
 
+                    # Se tiver menos de 7 bolas antes de fazer a figura de 3
                     if(bola_antes_menos3 <= 7):
                         coloca_peca(peca, posicoes_menos3[indexMenos][0], posicoes_menos3[indexMenos][1])
                         indexMenos += 1
@@ -2791,6 +2804,7 @@ def heuristica_mais9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                             pontos += 2**3
                             pecas_menos -= 3
                             menos_ordem += 3
+                    # Se tiver mais de 7 bolas antes de fazer a figura de 3
                     else:
                         coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
                         indexMenos += 1
@@ -2801,6 +2815,7 @@ def heuristica_mais9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                             pecas_menos -= 2
                             menos_ordem += 2
 
+                # Se não tiver mais de 2 peças de menos
                 else:
                     coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
                     indexMenos += 1
@@ -2811,7 +2826,7 @@ def heuristica_mais9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                         pecas_menos -= 2
                         menos_ordem += 2
             
-    #Se cumprir estas condições
+    # Consegue fazer uma bola de 8 se tiver menos de 4 mais antes de fazer essas figuras
     elif(pecas_bola>=8 and conta_bola_25("+",8)<=4):
 
         posicoes_mais9 = [(3,4),(3,5),(4,3),(5,3),(1,3),(2,3),(3,1),(3,2),(3,3)]
@@ -2819,7 +2834,7 @@ def heuristica_mais9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
 
         posicoes_x = [(5,1),(4,2),(5,5),(4,4),(2,2),(1,5),(4,1),(5,2)]
 
-        #Faz para estas posições
+        # Percorre as peças e coloca na matriz de jogo utilizando as coordenadas já definidas, depois de colocar a figura inteira o index volta a 0
         for peca in pecas:
             if peca == "0":
                 coloca_peca(peca, posicoes_bola8[indexBola][0], posicoes_bola8[indexBola][1])
@@ -2846,10 +2861,12 @@ def heuristica_mais9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                     pontos += 2**9
             if peca == "-":
 
+                # Se tiver mais de 2 peças de menos
                 if(pecas_menos>2):
 
                     bola_antes_menos3 = conta_menos_25("0",3+menos_ordem)
 
+                    # Se tiver menos de 7 bolas antes de fazer a figura de 3
                     if(bola_antes_menos3 <= 7):
                         coloca_peca(peca, posicoes_menos3[indexMenos][0], posicoes_menos3[indexMenos][1])
                         indexMenos += 1
@@ -2859,6 +2876,7 @@ def heuristica_mais9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                             pontos += 2**3
                             pecas_menos -= 3
                             menos_ordem += 3
+                    # Se tiver mais de 7 bolas antes de fazer a figura de 3
                     else:
                         coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
                         indexMenos += 1
@@ -2869,6 +2887,7 @@ def heuristica_mais9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                             pecas_menos -= 2
                             menos_ordem += 2
 
+                # Se não tiver mais de 2 peças de menos
                 else:
                     coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
                     indexMenos += 1
@@ -2879,7 +2898,7 @@ def heuristica_mais9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                         pecas_menos -= 2
                         menos_ordem += 2
             
-    #Se cumprir estas condições
+    # Consegue fazer um x de 5
     elif(pecas_x>=5):
 
         posicoes_mais9 = [(3,4),(3,5),(4,3),(5,3),(2,3),(3,1),(3,2),(1,3),(3,3)]
@@ -2893,12 +2912,13 @@ def heuristica_mais9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
 
         posicoes_bola_x = [(1,1),(1,2),(2,1),(4,1),(5,1),(5,2),(5,4),(5,5),(4,5),(2,5)]
 
-        #Faz para estas posições
+        # Percorre as peças e coloca na matriz de jogo utilizando as coordenadas já definidas, depois de colocar a figura inteira o index volta a 0
         for peca in pecas:
             if peca == "0":
 
                 x_antes_bola = conta_bola_25("*",4+bolas_ordem)
 
+                # Se tiver menos de 3 peças de x antes de fazer a figura de 4
                 if(x_antes_bola<=3):
                     coloca_peca(peca, posicoes_bola4[indexBola][0], posicoes_bola4[indexBola][1])
                     indexBola += 1
@@ -2908,6 +2928,7 @@ def heuristica_mais9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                         indexBola = 0
                         pontos += 2**4
                         bolas_ordem += 4
+                # Se tiver mais de 3 peças de x antes de fazer a figura de 4
                 else:
                     coloca_peca(peca, posicoes_bola_x[indexBola][0], posicoes_bola_x[indexBola][1])
                     indexBola += 1
@@ -2932,10 +2953,12 @@ def heuristica_mais9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                     pontos += 2**9
             if peca == "-":
 
+                # Se tiver mais de 2 peças de menos
                 if(pecas_menos>2):
 
                     mais_antes_menos3 = conta_menos_25("+",3+menos_ordem)
 
+                    # Se tiver menos de 7 peças de mais antes de fazer a figura de 3
                     if(mais_antes_menos3 <= 7):
                         coloca_peca(peca, posicoes_menos3[indexMenos][0], posicoes_menos3[indexMenos][1])
                         indexMenos += 1
@@ -2945,6 +2968,7 @@ def heuristica_mais9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                             pontos += 2**3
                             pecas_menos -= 3
                             menos_ordem += 3
+                    # Se tiver mais de 7 peças de mais antes de fazer a figura de 3
                     else:
                         coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
                         indexMenos += 1
@@ -2955,6 +2979,7 @@ def heuristica_mais9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                             pecas_menos -= 2
                             menos_ordem += 2
 
+                # Se não tiver mais de 2 peças de menos
                 else:
                     coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
                     indexMenos += 1
@@ -2965,14 +2990,14 @@ def heuristica_mais9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                         pecas_menos -= 2
                         menos_ordem += 2
             
-    #Se não cumprir com nenhuma das condições
+    # Se não conseguir fazer nenhum dos acima
     else:
 
         posicoes_mais9 = [(3,4),(3,5),(4,3),(5,3),(3,1),(3,2),(2,3),(1,3),(3,3)]
 
         posicoes_x = [(5,1),(4,2),(5,5),(4,4)]
 
-        #Faz para estas posições
+        # Percorre as peças e coloca na matriz de jogo utilizando as coordenadas já definidas, depois de colocar a figura inteira o index volta a 0
         for peca in pecas:
             if peca == "0":
                 coloca_peca(peca, posicoes_bola4[indexBola][0], posicoes_bola4[indexBola][1])
@@ -2999,10 +3024,12 @@ def heuristica_mais9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                     pontos += 2**9
             if peca == "-":
 
+                # Se tiver mais de 2 peças de menos
                 if(pecas_menos>2):
 
                     mais_antes_menos3 = conta_menos_25("+",3+menos_ordem)
 
+                    # Se tiver menos de 8 peças de mais antes de fazer a figura de 3
                     if(mais_antes_menos3 <= 8):
                         coloca_peca(peca, posicoes_menos3[indexMenos][0], posicoes_menos3[indexMenos][1])
                         indexMenos += 1
@@ -3012,6 +3039,7 @@ def heuristica_mais9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                             pontos += 2**3
                             pecas_menos -= 3
                             menos_ordem += 3
+                    # Se tiver mais de 8 peças de mais antes de fazer a figura de 3
                     else:
                         coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
                         indexMenos += 1
@@ -3022,6 +3050,7 @@ def heuristica_mais9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                             pecas_menos -= 2
                             menos_ordem += 2
 
+                # Se não tiver mais de 2 peças de menos
                 else:
                     coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
                     indexMenos += 1
@@ -3032,23 +3061,23 @@ def heuristica_mais9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                         pecas_menos -= 2
                         menos_ordem += 2
 
-#Função que decide em que lugares cada tipo de peça fica para fazer o X de 9 peças
+# Heuristica para x de 9 peças           
 def heuristica_x9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
     global pecas, pontos, posicoes_bola4, posicoes_bola8, posicoes_x9, posicoes_x5, posicoes_mais5, posicoes_mais9, posicoes_menos3, posicoes_menos2
 
-    #Variaveis para guardar o numero de cada peça
+    # Número de peças de cada tipo
     pecas_bola = pecas_bola
     pecas_mais = pecas_mais
     pecas_menos = pecas_menos
     pecas_x = pecas_x
 
-    #Variaveis para guardar em que coordenada do array está atualmente
+    # Usado para peercorrer o array de posições definido para cada figura
     indexBola = 0
     indexX = 0
     indexMais = 0
     indexMenos = 0
 
-    #Variavel para saber quantas peças foram colocadas
+    # Número de peças colocadas de cada tipo e ordem
     menos_colocadas = 0
     menos_ordem = 0
     bolas_colocadas = 0
@@ -3056,7 +3085,7 @@ def heuristica_x9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
     x_colocadas = 0
     mais_colocadas = 0
 
-    #Se cumprir estas condições
+    # Consegue fazer uma bola de 8 e um x de 5 se tiver menos de 6 x antes de fazer essas figuras
     if(pecas_bola>=8 and pecas_mais>=5 and (conta_bola_25("*",8)<=6 and conta_mais_25("*",5)<=6)):
 
         #Vai colocar as peças baseadas nestes arrays 
@@ -3066,6 +3095,7 @@ def heuristica_x9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
         posicoes_menos3 = [(5,1),(5,3),(5,2)]
         posicoes_menos2 = [(5,2),(5,3)]
 
+        # Percorre as peças e coloca na matriz de jogo utilizando as coordenadas já definidas, depois de colocar a figura inteira o index volta a 0
         for peca in pecas:
             if peca == "0":
                 coloca_peca(peca, posicoes_bola8[indexBola][0], posicoes_bola8[indexBola][1])
@@ -3095,11 +3125,12 @@ def heuristica_x9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                     pontos += 2**5
             if peca == "-":
 
+                # Se tiver mais de 2 peças de menos
                 if(pecas_menos>2):
 
                     x_antes_menos3 = conta_menos_25("*",3+menos_ordem)
 
-                    #Se tiver mais que 2 peças de menos e 5 ou menos pecas de X no tabuleiro, faz o menos de 3 peças
+                    # Se tiver menos de 5 peças de x antes de fazer a figura de 3
                     if(x_antes_menos3 <= 5):
                         coloca_peca(peca, posicoes_menos3[indexMenos][0], posicoes_menos3[indexMenos][1])
                         indexMenos += 1
@@ -3109,7 +3140,7 @@ def heuristica_x9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                             pontos += 2**3
                             pecas_menos -= 3
                             menos_ordem += 3
-                    #Senão faz o menos de 2 peças
+                    # Se tiver mais de 5 peças de x antes de fazer a figura de 3
                     else:
                         coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
                         indexMenos += 1
@@ -3120,7 +3151,7 @@ def heuristica_x9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                             pecas_menos -= 2
                             menos_ordem += 2
 
-                #Caso contrario faz o menos de 2 peças
+                # Se não tiver mais de 2 peças de menos
                 else:
                     coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
                     indexMenos += 1
@@ -3131,7 +3162,7 @@ def heuristica_x9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                         pecas_menos -= 2
                         menos_ordem += 2
             
-    #Caso cumpra com estas condições
+    # Consegue fazer uma bola de 8 se tiver menos de 7 x antes de fazer essa figura
     elif(pecas_bola>=8 and conta_bola_25("*",8)<=7):
 
         #Coloca as peças nestas coordenadas
@@ -3142,6 +3173,7 @@ def heuristica_x9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
         posicoes_menos3 = [(5,2),(5,4),(5,3)]
         posicoes_menos2 = [(5,2),(5,3)]
 
+        # Percorre as peças e coloca na matriz de jogo utilizando as coordenadas já definidas, depois de colocar a figura inteira o index volta a 0
         for peca in pecas:
             if peca == "0":
                 coloca_peca(peca, posicoes_bola8[indexBola][0], posicoes_bola8[indexBola][1])
@@ -3167,8 +3199,8 @@ def heuristica_x9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                 pecas_mais -= 1
                 mais_colocadas += 1
             if peca == "-":
-                
-                #Se tem mais do que 3 peças de menos, faz o menos de 3 peças
+
+                # Se tiver mais de 2 peças de menos
                 if(pecas_menos>2):
                     coloca_peca(peca, posicoes_menos3[indexMenos][0], posicoes_menos3[indexMenos][1])
                     indexMenos += 1
@@ -3178,8 +3210,8 @@ def heuristica_x9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                         pontos += 2**3
                         pecas_menos -= 3
                         menos_ordem += 3
-
-                #Caso contrario faz para o menos de 2 peças
+    
+                # Se não tiver mais de 2 peças de menos
                 else:
                     coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
                     indexMenos += 1
@@ -3190,7 +3222,7 @@ def heuristica_x9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                         pecas_menos -= 2
                         menos_ordem += 2
             
-    #Se cumprir com esta condição
+    # Consegue fazer um x de 5
     elif(pecas_mais>=5):
 
         #Coloca as peças nestas coordenadas
@@ -3205,12 +3237,13 @@ def heuristica_x9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
 
         posicoes_bola_x = [(1,2),(2,1),(1,3),(3,1),(1,4),(4,1),(2,5),(3,5),(4,5)]
 
+        # Percorre as peças e coloca na matriz de jogo utilizando as coordenadas já definidas, depois de colocar a figura inteira o index volta a 0
         for peca in pecas:
             if peca == "0":
 
                 x_antes_bola = conta_bola_25("*",4+bolas_ordem)
 
-                #Caso tenha 7 ou menos X no tabuleiro, faz a bola de 4
+                # Se tiver menos de 7 peças de x antes de fazer a figura de 4
                 if(x_antes_bola <= 7):
                     coloca_peca(peca, posicoes_bola4[indexBola][0], posicoes_bola4[indexBola][1])
                     indexBola += 1
@@ -3220,8 +3253,7 @@ def heuristica_x9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                         indexBola = 0
                         pontos += 2**4
                         bolas_ordem += 4
-
-                #Senão faz com as bolas não atrapalhem a fazer a figuara do X de 9 peças
+                # Se tiver mais de 7 peças de x antes de fazer a figura de 4
                 else:
                     coloca_peca(peca, posicoes_bola_x[indexBola][0], posicoes_bola_x[indexBola][1])
                     indexBola += 1
@@ -3246,6 +3278,7 @@ def heuristica_x9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                     pontos += 2**5
             if peca == "-":
 
+                # Se tiver mais de 2 peças de menos
                 if(pecas_menos>2):
                     coloca_peca(peca, posicoes_menos3[indexMenos][0], posicoes_menos3[indexMenos][1])
                     indexMenos += 1
@@ -3256,6 +3289,7 @@ def heuristica_x9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                         pecas_menos -= 3
                         menos_ordem += 3
 
+                # Se não tiver mais de 2 peças de menos
                 else:
                     coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
                     indexMenos += 1
@@ -3266,7 +3300,7 @@ def heuristica_x9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                         pecas_menos -= 2
                         menos_ordem += 2
 
-    #Caso não cumpra com nenhuma das outras condições
+    # Se não conseguir fazer nenhum dos acima
     else:
         
         #Põe as peças nestas coordenadas
@@ -3279,11 +3313,13 @@ def heuristica_x9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
         posicoes_menos3 = [(5,2),(5,4),(5,3)]
         posicoes_menos2 = [(5,2),(5,3)]
 
+        # Percorre as peças e coloca na matriz de jogo utilizando as coordenadas já definidas, depois de colocar a figura inteira o index volta a 0
         for peca in pecas:
             if peca == "0":
 
                 x_antes_bola = conta_bola_25("*",4+bolas_ordem)
 
+                # Se tiver menos de 7 peças de x antes de fazer a figura de 4
                 if(x_antes_bola <= 7):
                     coloca_peca(peca, posicoes_bola4[indexBola][0], posicoes_bola4[indexBola][1])
                     indexBola += 1
@@ -3293,6 +3329,7 @@ def heuristica_x9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                         indexBola = 0
                         pontos += 2**4
                         bolas_ordem += 4
+                # Se tiver mais de 7 peças de x antes de fazer a figura de 4
                 else:
                     coloca_peca(peca, posicoes_bola_x[indexBola][0], posicoes_bola_x[indexBola][1])
                     indexBola += 1
@@ -3314,6 +3351,7 @@ def heuristica_x9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                 mais_colocadas += 1
             if peca == "-":
 
+                # Se tiver mais de 2 peças de menos
                 if(pecas_menos>2):
                     coloca_peca(peca, posicoes_menos3[indexMenos][0], posicoes_menos3[indexMenos][1])
                     indexMenos += 1
@@ -3323,6 +3361,7 @@ def heuristica_x9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                         pontos += 2**3
                         pecas_menos -= 3
 
+                # Se não tiver mais de 2 peças de menos
                 else:
                     coloca_peca(peca, posicoes_menos2[indexMenos][0], posicoes_menos2[indexMenos][1]) 
                     indexMenos += 1
@@ -3332,7 +3371,7 @@ def heuristica_x9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                         pontos += 2**2
                         pecas_menos -= 2
 
-#Função que decide que figura vai fazer baseado no numero de 0 que existem no array de 25 peças
+#Função que decide para que figura vai fazer, dependendo do número de peças que tem
 def escolher_heuristica():
     global matriz_jogo, pecas, pecas_bola, pecas_mais, pecas_menos, pecas_x
 
@@ -3364,6 +3403,10 @@ def escolher_heuristica():
     #Heuristica simples
     else:
         heuristica_simples(pecas_bola, pecas_mais, pecas_menos, pecas_x)
+
+
+# Funções principais
+
 
 #Funcao que inicia o jogo, percorrendo as pecas do array e colocando-as na matriz de jogo
 def jogar():
@@ -3442,6 +3485,7 @@ def jogar():
     else:
         escolher_heuristica()
 
+# Função utilizada para retirar os pontos das peças que ficaram no tabuleiro
 def retira_pontos():
     global pontos, matriz_jogo, pecas
 
@@ -3480,18 +3524,18 @@ matriz.imprime_matriz(matriz_jogo)
         -AZUL: -
 """
 
-#emite som para saber que começou
+# Emite som para saber que começou
 ev3.speaker.beep()
 
-#leitura dos objetos e de seguiida imprime que figuras leu
+# Leitura dos objetos e de seguiida imprime que figuras leu
 leitura_objetos()
 print(pecas)
 
-#robot joga o jogo
+# Robot joga o jogo
 jogar()
 
-#retira os pontos das peças que ficaram
+# Retira os pontos das peças que ficaram
 retira_pontos()
 
-#imprime os pontos
+# Imprime os pontos
 print(pontos)
