@@ -1702,7 +1702,7 @@ def posicao_pecas():
 
 # Funções para Heuristica de menos de 25 peças
 
-
+#Função que conta o número de peças de uma dada peça
 def numero_pecas_dadas(peca):
     global pecas
     contador = 0
@@ -2193,6 +2193,7 @@ def heuristica_bola4(pecas_bola, pecas_mais, pecas_menos, pecas_x):
         posicoes_menos = [(5,1),(5,2)]
         posicoes_x = [(1,5),(5,5),(4,5),(2,5)]
 
+        #Faz para estas posições dos arrays 
         for peca in pecas:
             if peca == "0":
                 coloca_peca(peca, posicoes_bola12[indexBola][0], posicoes_bola12[indexBola][1])
@@ -3087,6 +3088,7 @@ def heuristica_x9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
     # Consegue fazer uma bola de 8 e um x de 5 se tiver menos de 6 x antes de fazer essas figuras
     if(pecas_bola>=8 and pecas_mais>=5 and (conta_bola_25("*",8)<=6 and conta_mais_25("*",5)<=6)):
 
+        #Vai colocar as peças baseadas nestes arrays 
         posicoes_x9 = [(5,5),(4,2),(2,2),(2,4),(1,5),(5,1),(4,4),(1,1),(3,3)]
         posicoes_mais5 = [(5,4),(4,3),(4,5),(3,4),(4,4)]
 
@@ -3163,6 +3165,7 @@ def heuristica_x9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
     # Consegue fazer uma bola de 8 se tiver menos de 7 x antes de fazer essa figura
     elif(pecas_bola>=8 and conta_bola_25("*",8)<=7):
 
+        #Coloca as peças nestas coordenadas
         posicoes_x9 = [(5,5),(4,2),(2,2),(2,4),(1,5),(5,1),(4,4),(1,1),(3,3)]
 
         posicoes_mais = [(4,3),(4,5),(3,4),(4,1),(2,5),(1,4),(3,5),(5,4)]
@@ -3222,6 +3225,7 @@ def heuristica_x9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
     # Consegue fazer um x de 5
     elif(pecas_mais>=5):
 
+        #Coloca as peças nestas coordenadas
         posicoes_x9 = [(5,1),(5,5),(4,2),(4,4),(1,5),(2,4),(2,2),(1,1),(3,3)]
 
         posicoes_mais5 = [(2,3),(3,2),(3,4),(4,3),(3,3)]
@@ -3298,7 +3302,8 @@ def heuristica_x9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
 
     # Se não conseguir fazer nenhum dos acima
     else:
-
+        
+        #Põe as peças nestas coordenadas
         posicoes_bola4 = [(2,1),(1,2),(2,2),(1,1)]
 
         posicoes_bola_x = [(1,2),(2,1),(1,3),(3,1),(1,4),(4,1),(2,5),(3,5),(4,5)]
@@ -3374,24 +3379,28 @@ def escolher_heuristica():
     pecas_mais = numero_pecas_dadas("+")
     pecas_menos = numero_pecas_dadas("-")
     pecas_x = numero_pecas_dadas("*")
-
+    
     #Heuristica bola 12
-    #Heuristica bola 16
-    #Heuristica mais de 9
-    #Heuristica x de 9
-    #Heuristica bola 8
-    #Heuristica simples
-
     if(pecas_bola >= 16):
         heuristica_bola5(pecas_bola, pecas_mais, pecas_menos, pecas_x)
+        
+    #Heuristica bola 16
     elif(16 > pecas_bola >= 12):
         heuristica_bola4(pecas_bola, pecas_mais, pecas_menos, pecas_x)
+        
+    #Heuristica mais de 9
     elif(pecas_mais >= 9):
         heuristica_mais9(pecas_bola, pecas_mais, pecas_menos, pecas_x)
+        
+    #Heuristica x de 9
     elif(pecas_x >= 9):
         heuristica_x9(pecas_bola, pecas_mais, pecas_menos, pecas_x)
+        
+    #Heuristica bola 8
     elif (12 > pecas_bola >= 8):
         heuristica_bola3(pecas_bola, pecas_mais, pecas_menos, pecas_x)
+        
+    #Heuristica simples
     else:
         heuristica_simples(pecas_bola, pecas_mais, pecas_menos, pecas_x)
 
