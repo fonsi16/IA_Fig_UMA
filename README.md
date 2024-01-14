@@ -26,3 +26,7 @@ Este projeto tem como objetivo implementar um programa para o Robot LEGO EV3 jog
 ## Exemplos de Figuras e Disposições
 
 - O jogo permite a formação de diferentes figuras a partir das peças inseridas na parte central da matriz (5 por 5), como linhas, colunas, diagonais, ou até mesmo formas mais complexas.
+
+## Link para blog
+
+https://www.facebook.com/profile.php?id=61552850203828
