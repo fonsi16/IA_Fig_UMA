@@ -45,13 +45,7 @@ matriz_jogo = []
 matriz_heuristica = []
 #Array das peças lidas no inicio do jogo
 
-pecas = ['+', '+', '+', '+', '+',
-         '-', '-', '*', '*', '*',
-         '*', '*', '+', '+', '+',
-         '*', '*', '*', '*', '0', 
-         '0', '0', '+', '0', '0',
-         '0', '0', '0', '-', '-',
-         '-', '0']
+pecas = []
 pecas_antes_verificadas=[]
 
 #OBJETOS
@@ -1028,39 +1022,67 @@ def remove_figuras(peca, quantidade):
         else:
             i += 1
 
-# NÃO TENHO A CERTEZA
+#Função utilizada para saber a primeira figura a ser concluida num certo limite, caso não consiga fazer nenhuma retorna None
+def maior_figura_possivel(limite, maximo_fig, maximo_global):
+    """sumário:
+        Esta função verifica a maior figura possivel para um certo limite, caso o tipo de peca 
+        maximo global seja "0"(dá para fazer uma bola de 16 mais para a frente),
+        ele nao conta nenhuma bola pois queremos que as bolas sejam guardadas para a figura máxima, 
+        então retornará um array com a primeira figura possivel 
 
-def maior_figura_possivel(limite, maximo_fig, maximo):
+    Args(exemplos):
+        limite (int): 25
+        maximo_fig (array): [[4],[9],[9],[2]]
+        maximo (string): "0"
+
+    Returns:
+        array: [3,"-"]
+    """
     global pecas
     total_bolas=0
     total_mais=0
     total_vezes=0
     total_menos=0
+    
+    #percorre o array pecas e incrementa o valor total de cada tipo, caso chegue a uma figura possivel do array esta retornará logo o tipo de peca e a figura
     for i in range(limite):
-        if pecas[i]=="0" and maximo!="0":
+        if pecas[i]=="0" and maximo_global!="0":
             total_bolas+=1
             if(total_bolas in maximo_fig[0]):
                 return [total_bolas,"0"]
-        elif pecas[i]=="*" and maximo!="*":
+        elif pecas[i]=="*" and maximo_global!="*":
             total_vezes+=1
             if(total_vezes in maximo_fig[2]):
                 return [total_vezes,"*"]
-        elif pecas[i]=="+" and maximo!="+":
+        elif pecas[i]=="+" and maximo_global!="+":
             total_mais+=1
             if(total_mais in maximo_fig[1]):
                 return [total_mais,"+"]
-        elif pecas[i]=="-" and maximo!="-":
+        elif pecas[i]=="-" and maximo_global!="-":
             total_menos+=1
             if(total_menos in maximo_fig[3]):
                 return [total_menos,"-"]
 
+#Função utilizada para saber a primeira maior figura possivel, caso não consiga fazer nenhuma retorna None
 def maior_figura(limite, maximo_fig):
+    """sumário:
+        Esta função é utilizada para verificar as figuras máximas do array, ele verifica pela ordem e caso chegue a uma peca
+        máxima este retorna essa peca, caso não encontre nenhuma retorna None
+    
+    Args(exemplos):
+        limite (int): 25
+        maximo_fig (array): [[16,4],[9,5],[9],[3,3,2]]
+
+    Returns:
+        array: [3,"-"]
+    """
     global pecas
     total_bolas=0
     total_mais=0
     total_vezes=0
     total_menos=0
-    i=0
+    
+   #percorre o array pecas e incrementa o valor total de cada tipo, caso chegue a uma figura possivel do array esta retornará logo o tipo de peca e a figura
     for i in range(limite):
         if pecas[i]=="0":
             total_bolas+=1
@@ -1083,8 +1105,9 @@ def maior_figura(limite, maximo_fig):
                 maximo_fig[3].remove(total_menos)
                 return [total_menos,"-"]
 
+#!!!!!!!!!!!!!!!!!!!->>usar copilot
 def maximo_pontos(figuras):
-
+    
     maior_valor = float('-inf')
     maior_figura = None
 
@@ -1104,8 +1127,6 @@ def maximo_pontos(figuras):
                     maior_figura = "-"
 
     return [maior_valor, maior_figura]
-
-# NÃO TENHO A CERTEZA
 
 # Função para verificar quais as figuras de bola é possivel fazer com as peças que tem
 def conta_bolas(num_total):
@@ -1204,57 +1225,65 @@ def pecas_intervalo(final):
     # Retorna o array com o numero de peças de cada tipo
     return [num_bola, num_mais, num_vezes, num_menos]
 
-# NÂO TENHO A CERTEZA
-
-def melhor_escolha():   
+#retorna a melhor escolha de pecas a serem feitas
+def melhor_escolha():
+    """
+    Esta função é a que verifica a melhor escolha por ordem para fazer as figuras,
+    primeiro verifiva se consegue fazer uma figura maxima global,ou seja,
+    do array completo, e se a conseguir fazer adiciona ao array escolha e depois remove as pecas ao array pecas porque estas ja 
+    têm um objetivo, caso nao consiga fazer uma global este faz uma para um limite que pode ser 25 ou menos se o array pecas for menor
+    """
     global pecas
-    
-    pecas_aux=pecas
         
     escolha=[]
-    
+   
+    #verifica as possiveis escolhas de figuras para oa rray de pecas completo 
     poss_fig_global=pecas_intervalo(len(pecas))
     maximo_fig=converter_num_possiveis(poss_fig_global)
     print(maximo_fig)
     
+    #verica a peca maxima que se pode fazer(exemplo: maximo=[16,"0"])
     maximo=maximo_pontos(maximo_fig)
-    print(maximo)
     while 1:
+        #caso o array de pecas seja maior que 25 o limite será 25 caso seja menor será o valor menor
         if(len(pecas)>25):
             limite=25
         else:   
             limite=len(pecas)
-        
+
+        #verifica se consegue fazer uma figura máxima nos nos primeiros 25 elementos do array pecas 
         figura = maior_figura(limite, maximo_fig)
         
+        #caso não consiga este irá verificar as pecas possiveis para o limite de posicões do array
         if figura==None:
             
+            #conta o numero de cada peca, e converte para os numeros possiveis  
             pecas_inic=pecas_intervalo(limite)
             poss_fig=converter_num_possiveis(pecas_inic)
-            # print(poss_fig)
             
+            #verifica a primeira figura que consegue fazer das pecas possiveis para o limite
             figura=maior_figura_possivel(limite, poss_fig, maximo[1])
             
+            #caso haja uma figura limite
             if figura!=None:
-            
+                #remove a figura do array pecas
                 remove_figuras(figura[1], figura[0])
-            
+
+                #as pecas máximas globais vão mudar pois "gastamos" pecas que iriamos utilizar
                 poss_fig_global=pecas_intervalo(len(pecas))
                 maximo_fig=converter_num_possiveis(poss_fig_global)
-                # print(maximo_fig)
                 
             else:
                 break
+        #caso haja uma figura máxima
         else:
+            #remove a figura do array pecas
             remove_figuras(figura[1], figura[0])
         
+        #adiciona a figura à escolha
         escolha.append(figura)
     
-    pecas=pecas_aux
-    
-    return escolha
-
-# NÃO TENHO A CERTEZA	
+    return escolha	
 
 # Função para verificar quantas peças tem já postas naquela posição de difrente tipo da que está a ser verificada, logo a concorrencia de peças
 def verifica_concorencia(linha, coluna, peca):
@@ -1278,14 +1307,17 @@ def verifica_sitio_peca_maxima(linha, coluna):
             contador+=1
         return contador
 
-# NÃO TENHO A CERTEZA
-
 # Função para inserir uma peça na matriz heurística
 def inserir_peca_heuristica(ordem, peca, linha, coluna):
     global matriz_heuristica, pecas_maximas
     
     # Percorre os conteúdos da peça
     for i in range(len(peca)):
+        """
+        peca refere-se a um array de figuras maxima que ja foi colocada na matriz, ou seja,
+        caso haja uma figura no array a peca que nos colocamos tem de ser feita antes de uma peca maxima, caso nao haja,
+        so inserimos na ultima poscição do array
+        """
         if peca[i] in matriz_heuristica[linha][coluna]:
             posicao=matriz_heuristica[linha][coluna].index(peca[i])
             if posicao==0:
@@ -1296,8 +1328,7 @@ def inserir_peca_heuristica(ordem, peca, linha, coluna):
 
     matriz_heuristica[linha][coluna].append(ordem)
 
-# NÃO TENHO A CERTEZA
-
+#função que escolhe a melhor posicção onde colocar as bolas na matriz heuristica a partir de um contador
 def posicao_bola_heuristica(tamanho,ordem,peca):
     global matriz_heuristica
     posicao=[]
@@ -1306,22 +1337,33 @@ def posicao_bola_heuristica(tamanho,ordem,peca):
     inicio_8=[[0,0],[0,1],[0,2],[1,0],[2,0],[2,2],[2,1],[1,2]]
     inicio_12=[[0,0],[0,1],[0,2],[0,3],[1,0],[2,0],[3,0],[3,1],[3,2],[3,3],[1,3],[2,3]]
     
+    #começa o contador pelas primeiras possíveis posicões onde se pode colocar uma figura de um certo tamanho
     if tamanho==4:
         for z in range(len(inicio_4)):
             contador=verifica_concorencia(inicio_4[z][0],inicio_4[z][1],"0")
             contador+=verifica_sitio_peca_maxima(inicio_4[z][0],inicio_4[z][1])
-            posicao=inicio_4
+        posicao=inicio_4
     elif tamanho==8:
         for z in range(len(inicio_8)):
             contador=verifica_concorencia(inicio_8[z][0],inicio_8[z][1],"0")
             contador+=verifica_sitio_peca_maxima(inicio_8[z][0],inicio_8[z][1])
-            posicao=inicio_8
+        posicao=inicio_8
     else:
-         for z in range(len(inicio_12)):
+        for z in range(len(inicio_12)):
             contador=verifica_concorencia(inicio_12[z][0],inicio_12[z][1],"0")
             contador+=verifica_sitio_peca_maxima(inicio_12[z][0],inicio_12[z][1])
-            posicao=inicio_12
+        posicao=inicio_12
+    #guardamos o contador num contador auxiliar
     contador_aux=contador
+    
+    """
+    verificamos agora o resto da posições que podemos verificar. Verificamos para TAMANHO_MATRIZ-(tamanho//4) pois não
+    queremos aceder a casas fora da matriz 5*5,
+    caso o contador seja mais pequenos que o contador auxiliar a posicção e o contador são guardados à epsera para verificas
+    se há uma melhor posição onde ser colocado. 
+    quanto maior o contador pior, o contador imcrementa caso as pecas se situam num lugar de uma peca máxima e onde haja um acumulo de
+    muitas pecas, pois queremos dispersar as pecas o melhor possível
+    """
     for i in range(TAMANHO_MATRIZ-(tamanho//4)):
         for j in range(TAMANHO_MATRIZ-(tamanho//4)):
             if(tamanho==4):
@@ -1386,11 +1428,15 @@ def posicao_bola_heuristica(tamanho,ordem,peca):
                     posicao=[[i,j],[i,j+1],[i,j+2],[i,j+3],
                              [i+1,j],[i+2,j],[i+3,j],[i+2,j+3]
                              [i+3,j+1],[i+3,j+2],[i+3,j+3],[i+1,j+3]]
+                    
+    #quando descobrirmos a melhor posição podemos inserir na matriz heuristica
     for g in range(len(posicao)):
         inserir_peca_heuristica(ordem, peca, posicao[g][0],posicao[g][1])
 
+#função que escolhe a melhor posicção onde colocar os vezes na matriz heuristica a partir de um contador
 def posicao_vezes_heuristica(ordem,peca):
     global matriz_heuristica
+    #começa o contador pelas primeiras possíveis posicões onde se pode colocar a figura
     posicao=[[0,0],[1,1],[2,2],[0,2],[2,0]]
     contador=(verifica_concorencia(0,0,"*")+verifica_concorencia(1,1,"*")+
               verifica_concorencia(2,2,"*")+verifica_concorencia(0,2,"*")+
@@ -1398,7 +1444,16 @@ def posicao_vezes_heuristica(ordem,peca):
     contador+=(verifica_sitio_peca_maxima(0,0)+verifica_sitio_peca_maxima(1,1)+
               verifica_sitio_peca_maxima(2,2)+verifica_sitio_peca_maxima(0,2)+
               verifica_sitio_peca_maxima(2,0))
+    #guardamos o contador num contador auxiliar
     contador_aux=contador
+    
+    """
+    verificamos agora o resto da posições que podemos verificar
+    caso o contador seja mais pequenos que o contador auxiliar a posicção e o contador são guardados à epsera para verificas
+    se há uma melhor posição onde ser colocado. 
+    quanto maior o contador pior, o contador imcrementa caso as pecas se situam num lugar de uma peca máxima e onde haja um acumulo de
+    muitas pecas, pois queremos dispersar as pecas o melhor possível
+    """
     for i in range(1,TAMANHO_MATRIZ-1):
         for j in range(1,TAMANHO_MATRIZ-1):
             contador+=(verifica_concorencia(i,j,"*")+
@@ -1415,11 +1470,14 @@ def posicao_vezes_heuristica(ordem,peca):
                 contador_aux=contador
                 posicao=[[i,j],[i-1,j-1],[i+1,j+1],[i-1,j+1],[i+1,j-1]]
     
+    #quando descobrirmos a melhor posição podemos inserir na matriz heuristica
     for z in range(len(posicao)):
         inserir_peca_heuristica(ordem,peca,posicao[z][0],posicao[z][1])
 
+#função que escolhe a melhor posicção onde colocar os mais na matriz heuristica a partir de um contador
 def posicao_mais_heuristica(ordem,peca):
     global matriz_heuristica
+    #começa o contador pelas primeiras possíveis posicões onde se pode colocar a figura
     posicao=[[1,0],[1,1],[2,1],[0,1],[1,2]]
     contador=(verifica_concorencia(1,0,"+")+verifica_concorencia(1,1,"+")+
               verifica_concorencia(2,1,"+")+verifica_concorencia(0,1,"+")+
@@ -1428,7 +1486,16 @@ def posicao_mais_heuristica(ordem,peca):
               verifica_sitio_peca_maxima(2,1)+verifica_sitio_peca_maxima(0,1)+
               verifica_sitio_peca_maxima(1,2))
     
+     #guardamos o contador num contador auxiliar
     contador_aux=contador
+    
+    """
+    verificamos agora o resto da posições que podemos verificar
+    caso o contador seja mais pequenos que o contador auxiliar a posicção e o contador são guardados à epsera para verificas
+    se há uma melhor posição onde ser colocado. 
+    quanto maior o contador pior, o contador imcrementa caso as pecas se situam num lugar de uma peca máxima e onde haja um acumulo de
+    muitas pecas, pois queremos dispersar as pecas o melhor possível
+    """
     for i in range(1,TAMANHO_MATRIZ-1):
         for j in range(1,TAMANHO_MATRIZ-1):
             contador=(verifica_concorencia(i,j,"+")+
@@ -1445,13 +1512,16 @@ def posicao_mais_heuristica(ordem,peca):
                 contador_aux=contador
                 posicao=[[i,j],[i-1,j],[i,j-1],[i,j+1],[i+1,j]]
     
+    #quando descobrirmos a melhor posição podemos inserir na matriz heuristica
     for z in range(len(posicao)):
         inserir_peca_heuristica(ordem,peca,posicao[z][0],posicao[z][1])
 
+#função que escolhe a melhor posicção onde colocar os menos na matriz heuristica a partir de um contador
 def posicao_menos_heuristica(tamanho,ordem,peca):
     global matriz_heuristica
     posicao=[]
     contador=0
+    #começa o contador pelas primeiras possíveis posicões onde se pode colocar uma figura de um certo tamanho
     if tamanho==2:
         contador=verifica_concorencia(0,0,"-")+verifica_concorencia(0,1,"-")
         contador+=verifica_sitio_peca_maxima(0,0)+verifica_sitio_peca_maxima(0,1)
@@ -1460,7 +1530,18 @@ def posicao_menos_heuristica(tamanho,ordem,peca):
         contador=verifica_concorencia(0,0,"-")+verifica_concorencia(0,1,"-")+verifica_concorencia(0,2,"-")
         contador+=verifica_sitio_peca_maxima(0,0)+verifica_sitio_peca_maxima(0,1)+verifica_sitio_peca_maxima(0,2)
         posicao=[[0,0],[0,1],[0,2]]
+        
+    #guardamos o contador num contador auxiliar
     contador_aux=contador
+    
+    """
+    verificamos agora o resto da posições que podemos verificar. Verificamos para TAMANHO_MATRIZ-(tamanho) pois não
+    queremos aceder a casas fora da matriz 5*5,
+    caso o contador seja mais pequenos que o contador auxiliar a posicção e o contador são guardados à epsera para verificas
+    se há uma melhor posição onde ser colocado. 
+    quanto maior o contador pior, o contador imcrementa caso as pecas se situam num lugar de uma peca máxima e onde haja um acumulo de
+    muitas pecas, pois queremos dispersar as pecas o melhor possível
+    """
     for i in range(TAMANHO_MATRIZ):
         for j in range(TAMANHO_MATRIZ-tamanho):
             if tamanho==2:
@@ -1478,9 +1559,11 @@ def posicao_menos_heuristica(tamanho,ordem,peca):
                 else:
                     posicao=[[i,j],[i,j+1],[i,j+2]]
     
+    #quando descobrirmos a melhor posição podemos inserir na matriz heuristica
     for z in range(len(posicao)):
         inserir_peca_heuristica(ordem,peca,posicao[z][0],posicao[z][1])
 
+#caso a peca seja do mesmo tipo das pecas maximas inserimos em coordenadas onde ficarão parte das pessas máximas para melhor eficiencia
 def peca_tipo_maior(ordem, peca):
     global matriz_heuristica
     
@@ -1513,6 +1596,7 @@ def peca_tipo_maior(ordem, peca):
                 inserir_peca_heuristica(ordem,peca,bolas_lado,i)
                 inserir_peca_heuristica(ordem,peca,i,bolas_lado)
 
+#preenche a matriz heuristica com figuras maximas, ou seja aquelas que nao tem outras escolahs de posições(bola de 16 e x e + de 9)
 def preenche_matriz_heuristica_maximo(maximo):
     global matriz_heuristica
     if "0"==maximo[1]:
@@ -1535,6 +1619,7 @@ def preenche_matriz_heuristica_maximo(maximo):
                     matriz_heuristica[i][j].append(maximo)
     return 0
 
+#preenche a matriz heurisitca toda com a ordem das figuras que serão feitas
 def posicao_pecas():
     global pecas, matriz_heuristica, pecas_maximas
 
@@ -1545,34 +1630,41 @@ def posicao_pecas():
     
     guarda_aux=[]
     
+    #recebe a melhor esolha para o array pecas
     ordem=melhor_escolha()
     
-    # pecas maiores
+    # primeiro insere na matriz heuristica as pecas máximas->(bola de 16/ + e x de 9)
     for i in range(len(ordem)):
         if ordem[i][0] in [16,9]:
             preenche_matriz_heuristica_maximo(ordem[i])
+            #adiciona a posição e a ordem do array que ja foi visitado
             posicao_peca_maior.append(i)
             posicoes_visitadas.append(i)
             if ordem[i][1] not in pecas_maiores_tipo:
+                #adiciona as pecas maiores e o tipo de peca de cada figura
                 pecas_maiores_tipo.append(ordem[i][1])
                 pecas_maiores.append(ordem[i])
     
+    #guarda variaveis que serão precisas os valores anteriores
     guarda_aux=pecas_maiores.copy()
     guarda_aux_posicao=posicao_peca_maior.copy()
     
     # pecas mesmo tipo 
     for z in range(len(ordem)):
         if z not in posicoes_visitadas:
+            #caso a posição do array seja maior que a posição da figura maxima atula este remove a posição atual e segue para a proxima
             if z>posicao_peca_maior[0]:
                 pecas_maiores.pop(0)
                 posicao_peca_maior.pop(0)
+            #adiciona à matrix heuristica as pecas que são do mesmo tipo das maximas e adicina a posiçaõ do array às posições visitadas
             if ordem[z] not in pecas_maiores:
                 if ordem[z][1] in pecas_maiores_tipo:
                     for k in range(len(pecas_maiores_tipo)):
                         if pecas_maiores_tipo[k]==ordem[z][1]:
                             peca_tipo_maior(ordem[z], pecas_maiores)
                             posicoes_visitadas.append(z)
-            
+
+    #os valores voltam ao normal e são guardados
     pecas_maiores=guarda_aux
     pecas_maximas=pecas_maiores.copy()
     posicao_peca_maior=guarda_aux_posicao
@@ -1580,6 +1672,7 @@ def posicao_pecas():
     #as outras pecas         
     for j in range(len(ordem)):
         if j not in posicoes_visitadas:
+            #verifica a posição, caso tenha passado uma posição de uma peca maxima esta é removida do array de posições e a figura tambem é removida
             if len(posicao_peca_maior)>0:
                 while 1:
                     if(j>posicao_peca_maior[0]):
@@ -1587,9 +1680,11 @@ def posicao_pecas():
                         posicao_peca_maior.pop(0)
                     else:
                         break
+                    #caso não hajam pecas_maiores é dado um valor ficticio para que seja inserido no final do array de uma posição da matriz heuristica
                     if pecas_maiores==[]:
                         pecas_maiores.append([20,"-"])
                         break
+            #dependedo do tipo será adicionado na matriz heuristica
             if ordem[j][1]=="-":
                 posicao_menos_heuristica(ordem[j][0],ordem[j],pecas_maiores)
             elif ordem[j][1]=="+":
@@ -2501,7 +2596,7 @@ def heuristica_bola5(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                         indexMenos += 1
                         menos_colocadas += 1
                         menos_ordem += 1
-        
+
 def heuristica_mais9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
     global pecas, pontos, posicoes_bola4, posicoes_bola8, posicoes_x9, posicoes_x5, posicoes_mais5, posicoes_mais9, posicoes_menos3, posicoes_menos2
 
@@ -3191,6 +3286,7 @@ def heuristica_x9(pecas_bola, pecas_mais, pecas_menos, pecas_x):
                         pontos += 2**2
                         pecas_menos -= 2
 
+#Função que decide que fig
 def escolher_heuristica():
     global matriz_jogo, pecas, pecas_bola, pecas_mais, pecas_menos, pecas_x
 
@@ -3199,12 +3295,12 @@ def escolher_heuristica():
     pecas_menos = numero_pecas_dadas("-")
     pecas_x = numero_pecas_dadas("*")
 
-    #Heiristica bola 16
-    #Heiristica bola 12
-    #Heiristica mais de 9
-    #Heiristica x de 9
-    #Heiristica bola 8
-    #Heiristica simples
+    #Heuristica bola 12
+    #Heuristica bola 16
+    #Heuristica mais de 9
+    #Heuristica x de 9
+    #Heuristica bola 8
+    #Heuristica simples
 
     if(pecas_bola >= 16):
         heuristica_bola5(pecas_bola, pecas_mais, pecas_menos, pecas_x)
@@ -3222,7 +3318,8 @@ def escolher_heuristica():
 #Funcao que inicia o jogo, percorrendo as pecas do array e colocando-as na matriz de jogo
 def jogar():
     global matriz_jogo, matriz_heuristica, pecas, pontos
-
+    
+    #Se houver mais que 25 peças no array vai seguir a heuristica do posicao_pecas() em que faz o melhor_escolha()
     if(len(pecas)>25):
 
         pecas_aux=pecas.copy()
@@ -3233,11 +3330,14 @@ def jogar():
         conta_vezes=0
         conta_menos=0
         
+        #Já dá aqui os pontos finais totais que o robô vai ter, pois já sabe que jogadas pode fazer
         for q in range(len(ordem)):
             pontos+=2**ordem[q][0]
         
         for i in range(len(pecas)):
             tipo=pecas[i]
+
+            # conta quantas peças de cada existem no array
             if len(ordem)>0:
                 if tipo=="0":
                     conta_bolas+=1
@@ -3247,7 +3347,13 @@ def jogar():
                     conta_vezes+=1
                 else:
                     conta_menos+=1
+
+                #Percorre a lista de peças que tem de pôr por ordem
                 for z in range(len(ordem)):
+                    
+                    #Se é do tipo que se pretende vê quais as coordenadas que tem de por essa peça e chama a função
+                    #que coloca a peça no sitio correto do tabuleiro, quando a figura é feita é retirada essa figura
+                    #da lista ordem
                     if tipo==ordem[z][1]:
                         if tipo=="0":
                             coordenadas=procura_coordenada(ordem[z], conta_bolas)
@@ -3275,11 +3381,15 @@ def jogar():
                                 ordem.pop(z)
                                 
                         break
+                    
+            #Se não houver mais nenhuma figura para fazer e restar peças, vai colocar essas peças no tabuleiro sem nenhuma 
+            #intenção de formar uma figura
             else:
                 coordenadas=procura_coordenada_vazia()
                 coloca_peca(pecas[i],coordenadas[0],coordenadas[1])
+    
+    #Se o array de peças for menor que 25 peças, vai escolher uma destas heuristicas
     else:
-
         escolher_heuristica()
 
 def retira_pontos():
@@ -3293,11 +3403,6 @@ def retira_pontos():
             #Se naquela coordenada houver algo diferente de " " e "!" que nao sao pecas vai adicionar ao contador
             if (matriz_jogo[i][j]!=" ") and matriz_jogo[i][j]!="!":
                 contador += 1
-
-    #Percorre o array de pecas que sobraram e adiciona ao contador
-    # for i in range(len(pecas)):
-    #     if pecas[i] != " ":
-    #         contador += 1
 
     #Verifica se a variavel que conta as pecas e maior que zero
     if contador > 0:
@@ -3319,16 +3424,24 @@ matriz.imprime_matriz(matriz_jogo)
 
 """
     No início o robo verifica as cores que representam os símbolos 
-        -AMARELO: O
-        -VERMELHO: X
+        -AMARELO: 0
+        -VERMELHO: *
         -VERDE: +
         -AZUL: -
 """
 
+#emite som para saber que começou
 ev3.speaker.beep()
-# leitura_objetos()
+
+#leitura dos objetos e de seguiida imprime que figuras leu
+leitura_objetos()
 print(pecas)
-# larga_objeto()
+
+#robot joga o jogo
 jogar()
+
+#retira os pontos das peças que ficaram
 retira_pontos()
+
+#imprime os pontos
 print(pontos)
